@@ -1,0 +1,98 @@
+query portfolioTypes {
+    portfolioTypes {
+        id
+        name
+        iconUrl
+    }
+}
+
+mutation createPortfolio($name: String, $portfolioType: UUID!) {
+    addPortfolio(input: {
+        name: $name,
+        typeId: $portfolioType
+    }) {
+        isSuccess
+        message
+    }
+}
+
+query getCurrencies {
+  currencies {
+    id
+    name
+    ticket
+    sign
+  }
+}
+
+# mutation refillBalance($portfolioId: Int!, $price: Int!, $date: DateTime!) {
+#     refillBalance(
+#         input: {
+#             price: $price
+#             date: $date
+#             portfolioId: $portfolioId
+#         }
+#     ) {
+#         isSuccess
+#         message
+#     }
+# }
+
+# mutation withdrawalBalance($portfolioId: Int!, $price: Int!, $date: DateTime!) {
+#     withdrawalBalance(
+#         input: {
+#             price: $price
+#             date: $date
+#             portfolioId: $portfolioId
+#         }
+#     ) {
+#         isSuccess
+#         message
+#     }
+# }
+
+# mutation buyAsset(
+#     $ticket: String
+#     $amount: Int!
+#     $assetTypeId: Int!
+#     $portfolioId: Int!
+#     $price: Int!
+#     $date: DateTime!
+# ) {
+#     buyAsset(
+#         input: {
+#             ticket: $ticket
+#             amount: $amount
+#             assetTypeId: $assetTypeId
+#             portfolioId: $portfolioId
+#             price: $price
+#             date: $date
+#         }
+#     ) {
+#         isSuccess
+#         message
+#     }
+# }
+
+# mutation sellAsset(
+#     $ticket: String
+#     $amount: Int!
+#     $assetTypeId: Int!
+#     $portfolioId: Int!
+#     $price: Int!
+#     $date: DateTime!
+# ) {
+#     sellAsset(
+#         input: {
+#             ticket: $ticket
+#             amount: $amount
+#             assetTypeId: $assetTypeId
+#             portfolioId: $portfolioId
+#             price: $price
+#             date: $date
+#         }
+#     ) {
+#         isSuccess
+#         message
+#     }
+# }

@@ -1,0 +1,128 @@
+query stockReports($portfolioIds: [UUID!]) {
+    aggregateStocks(portfolioIds: $portfolioIds) {
+        isSuccess
+        message
+        result {
+            name
+            ticket
+            amount
+            price
+            priceChange
+            allPrice
+            boughtPrice
+            paperProfit
+            paperProfitPercent
+            nearestDividend {
+                currencyId
+                paymentValue
+                allPayment
+                registryCloseDate
+            }
+            paidDividends
+            updateTime
+        }
+    }
+}
+
+query fondReports($portfolioIds: [UUID!]) {
+    aggregateFonds(portfolioIds: $portfolioIds) {
+        isSuccess
+        message
+        result {
+            name
+            ticket
+            amount
+            price
+            priceChange
+            allPrice
+            boughtPrice
+            paperProfit
+            paperProfitPercent
+            updateTime
+        }
+    }
+}
+
+query bondReports($portfolioIds: [UUID!]) {
+    aggregateBonds(portfolioIds: $portfolioIds) {
+        isSuccess
+        message
+        result {
+            name
+            ticket
+            amount
+            price
+            priceChange
+            allPrice
+            boughtPrice
+            paperProfit
+            paperProfitPercent
+            nearestPayment {
+                currencyId
+                paymentValue
+                allPayment
+                registryCloseDate
+            }
+            paidPayments
+            updateTime
+            amortizationDate
+            hasAmortized
+        }
+    }
+}
+
+query aggregateFuturePayments($portfolioIds: [UUID!]) {
+    aggregateFuturePayments(portfolioIds: $portfolioIds) {
+        isSuccess
+        message
+        result {
+            name
+            ticket
+            amount
+            allPayment
+            paymentValue
+            registryCloseDate
+            currencyId
+        }
+    }
+}
+
+# query assetOperations($portfolioId: UUID!) {
+#     assetOperations(portfolioId: $portfolioId) {
+#         isSuccess
+#         message
+#         result {
+#             id
+#             ticket
+#             amount
+#             price
+#             currencyId
+#             currency {
+#                 sign
+#             }
+#             date
+#             portfolioId
+#             assetType
+#         }
+#     }
+# }
+
+# query currencyOperations($portfolioId: UUID!) {
+#     currencyOperations(portfolioId: $portfolioId) {
+#         isSuccess
+#         message
+#         result {
+#             id
+#             currencyId
+#             currency {
+#                 sign
+#             }
+#             total
+#             date
+#             operationType
+#             portfolioId
+#             ticket
+#             amount
+#         }
+#     }
+# }

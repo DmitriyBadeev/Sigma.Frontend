@@ -1,0 +1,33 @@
+query aggregatePortfolioCostGraph($portfolioIds: [UUID!]) {
+    aggregatePortfolioCostGraph(portfolioIds: $portfolioIds) {
+        portfolioId
+        portfolioName
+        data {
+            date
+            value
+        }
+    }
+}
+
+query Sparkline(
+    $ticket: String!
+    $from: DateTime!
+    $interval: CandleInterval!
+) {
+    stockCandles(ticket: $ticket, from: $from, interval: $interval) {
+        date
+        close
+    }
+}
+
+query StockGraph(
+    $ticket: String!
+    $from: DateTime!
+    $interval: CandleInterval!
+) {
+    stockCandles(ticket: $ticket, from: $from, interval: $interval) {
+        date
+        close
+        volume
+    }
+}

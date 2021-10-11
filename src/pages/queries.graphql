@@ -1,0 +1,21 @@
+# query asset($ticket: String!) {
+#     asset(ticket: $ticket) {
+#         isSuccess
+#         message
+#         result {
+#             id
+#             ticket
+#             assetType {
+#                 name
+#             }
+#             fullName
+#             marketFullName
+#             description
+#             sector
+#             capitalization
+#             price
+#             priceChange
+#             updateTime
+#         }
+#     }
+# }

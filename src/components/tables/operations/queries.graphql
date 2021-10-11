@@ -1,0 +1,119 @@
+mutation createAssetOperation(
+  $ticket: String
+  $amount: Int!
+  $assetAction: AssetAction!
+  $assetType: AssetType!
+  $currencyId: UUID!
+  $date: DateTime!
+  $portfolioId: UUID!
+  $price: Decimal!
+) {
+  createAssetOperation(
+    input: {
+      ticket: $ticket
+      amount: $amount
+      assetAction: $assetAction
+      assetType: $assetType
+      currencyId: $currencyId
+      date: $date
+      portfolioId: $portfolioId
+      price: $price
+    }
+  ) {
+    isSuccess
+    message
+  }
+}
+
+mutation createCurrencyOperation(
+  $ticket: String
+  $amount: Int
+  $operationType: OperationType!
+  $currencyId: UUID!
+  $date: DateTime!
+  $portfolioId: UUID!
+  $total: Decimal!
+) {
+  createCurrencyOperation(
+    input: {
+      ticket: $ticket
+      amount: $amount
+      operationType: $operationType
+      currencyId: $currencyId
+      date: $date
+      portfolioId: $portfolioId
+      total: $total
+    }
+  ) {
+    isSuccess
+    message
+  }
+}
+
+query getAssetOperations($portfolioId: UUID!) {
+  assetOperations(portfolioId: $portfolioId) {
+    isSuccess
+    message
+    result {
+      id
+      assetAction
+      ticket
+      amount
+      price
+      currency {
+        name
+        sign
+        ticket
+      }
+      date
+      portfolio {
+        name
+        portfolioType {
+          iconUrl
+        }
+      }
+      assetType
+    }
+  }
+}
+
+query getCurrencyOperations($portfolioId: UUID!) {
+  currencyOperations(portfolioId: $portfolioId) {
+    isSuccess
+    message
+    result {
+      id
+      currency {
+        name
+        sign
+        ticket
+      }
+      total
+      date
+      operationType
+      portfolio {
+        id
+        name
+        portfolioType {
+          iconUrl
+        }
+      }
+      ticket
+      amount
+    }
+  }
+}
+
+mutation removeAssetOperation($assetOperationId: UUID!) {
+  removeAssetOperation(assetOperationId: $assetOperationId) {
+    isSuccess
+    message
+  }
+}
+
+mutation removeCurrencyOperation($currencyOperationId: UUID!) {
+  removeCurrencyOperation(currencyOperationId: $currencyOperationId) {
+    isSuccess
+    message
+  }
+}

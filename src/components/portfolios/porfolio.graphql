@@ -1,0 +1,9 @@
+query portfolios {
+    portfolios {
+        id
+        name
+        portfolioType {
+            iconUrl
+        }
+    }
+}

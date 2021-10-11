@@ -1,0 +1,10 @@
+/*------Page Fade-----*/
+
+.page-fade-enter-active {
+    opacity: 1;
+}
+
+.page-fade-enter-done {
+    transform: translateY(0) !important;
+    opacity: 1 !important;
+}
