@@ -1,7 +1,7 @@
 import { UserManagerSettings, WebStorageStateStore } from "oidc-client"
 
 export const prodConfig: UserManagerSettings = {
-    authority: "https://sigma-frontend.herokuapp.com",
+    authority: "https://identity-sigma.herokuapp.com",
     client_id: "Sigma.Spa",
     redirect_uri: "https://sigma-frontend.herokuapp.com/auth-complete",
     response_type: "code",
