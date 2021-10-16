@@ -3,14 +3,14 @@ import { UserManagerSettings, WebStorageStateStore } from "oidc-client"
 export const prodConfig: UserManagerSettings = {
     authority: "http://identity-sigma.herokuapp.com",
     client_id: "Sigma.Spa",
-    redirect_uri: "https://sigma-frontend.herokuapp.com/auth-complete",
+    redirect_uri: "http://sigma-frontend.herokuapp.com/auth-complete",
     response_type: "code",
     loadUserInfo: true,
     scope: "openid profile Sigma.Api.All",
-    post_logout_redirect_uri: "https://sigma-frontend.herokuapp.com/signout",
+    post_logout_redirect_uri: "http://sigma-frontend.herokuapp.com/signout",
     userStore: new WebStorageStateStore({ store: window.localStorage }),
     automaticSilentRenew: true,
-    silent_redirect_uri: "https://sigma-frontend.herokuapp.com/silent.html",
+    silent_redirect_uri: "http://sigma-frontend.herokuapp.com/silent.html",
 }
 
 export const devConfig: UserManagerSettings = {
