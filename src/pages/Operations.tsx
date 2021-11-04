@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import React, { useEffect, useState } from "react"
 import FadePage from "components/fade/FadePage"
 import CurrencyOperationsTable from "components/tables/operations/CurrencyOperationsTable"
 import AssetOperationsTable from "components/tables/operations/AssetOperationsTable"
@@ -7,9 +7,9 @@ import { H3 } from "GeneralStyles"
 import { usePortfoliosQuery } from "finance-types"
 import Loading from "components/loading/Loading"
 import styled from "styled-components"
-import { Tabs } from 'antd';
+import { Tabs } from 'antd'
 
-const { TabPane } = Tabs;
+const { TabPane } = Tabs
 const { Option } = Select
 
 const Icon = styled.img`
@@ -25,11 +25,18 @@ const OptionContainer = styled.div`
 const Operations: React.FC = () => {
     const { data, loading, error } = usePortfoliosQuery()
     const [selectedPortfolio, setSelectedPortfolio] = useState<any>()
+    const [selectInit, setSelectInit] = useState(false)
+    const portfolios = data?.portfolios
+
+    useEffect(() => {
+        if (portfolios && !selectInit) {
+            setSelectedPortfolio(portfolios[0]?.id)
+            setSelectInit(true)
+        }
+    }, [portfolios])
 
     if (error) message.error(error.message)
     if (loading) return <Loading size="big" height="70vh"/>
-
-    const portfolios = data?.portfolios
 
     const getPortfolioSelect = () => {
         const options = portfolios?.map((portfolio) => (
@@ -46,6 +53,7 @@ const Operations: React.FC = () => {
                 size="large" 
                 placeholder="Выберите портфель"
                 defaultActiveFirstOption
+                value={selectedPortfolio}
                 style={{width: "100%"}} 
                 onChange={value => setSelectedPortfolio(value)}>
                 {options}

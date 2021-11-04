@@ -1,29 +1,34 @@
-import React, { useState } from "react"
+import React from "react"
 import { H3 } from "GeneralStyles"
 import FadePage from "components/fade/FadePage"
-import StockMarketTable from "components/tables/StockMarketTable"
-import FondMarketTable from "components/tables/FondMarketTable"
-import BondMarketTable from "components/tables/BondMarketTable"
-import { Row } from "antd"
-import Selector from "components/inputs/Selector"
+import StockMarketTable from "components/tables/markets/StockMarketTable"
+import FondMarketTable from "components/tables/markets/FondMarketTable"
+import BondMarketTable from "components/tables/markets/BondMarketTable"
+import { Row, Tabs } from "antd"
+
+const { TabPane } = Tabs
 
 const Market: React.FC = () => {
-    const items = ["Акции", "Облигации", "Фонды"]
-    const [activeIndex, setActiveIndex] = useState(0)
-
-    const getCurrentTable = () => {
-        if (activeIndex === 0) return <StockMarketTable />
-        if (activeIndex === 1) return <BondMarketTable />
-        if (activeIndex === 2) return <FondMarketTable />
-    }
 
     return (
         <FadePage>
             <Row>
                 <H3>Рынок</H3>
             </Row>
-            <Selector items={items} onTab={(index) => setActiveIndex(index)} />
-            {getCurrentTable()}
+
+            <Tabs defaultActiveKey="1" size="large">
+                <TabPane tab="Акции" key="1">
+                    <StockMarketTable />
+                </TabPane>
+
+                <TabPane tab="Фонды" key="2">
+                    <FondMarketTable />
+                </TabPane>
+
+                <TabPane tab="Облигации" key="3">
+                    <BondMarketTable />
+                </TabPane>
+            </Tabs>
         </FadePage>
     )
 }
