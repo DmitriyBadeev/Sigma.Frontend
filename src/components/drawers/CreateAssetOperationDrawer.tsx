@@ -60,7 +60,7 @@ const CreateAssetOperationDrawer: React.FC<propTypes> = (props) => {
             variables: {
                 portfolioId: props.portfolioId,
                 date: values.date.format(),
-                price: values.price,
+                price: Number(values.price),
                 amount: values.amount,
                 assetAction: values.assetAction,
                 ticket: values.ticket,
