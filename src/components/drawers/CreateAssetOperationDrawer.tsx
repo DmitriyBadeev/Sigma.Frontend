@@ -104,6 +104,22 @@ const CreateAssetOperationDrawer: React.FC<propTypes> = (props) => {
         </Form.Item>
     }
 
+    const changeFormHandler = (changedValues: any, allValues: any) => {
+        console.log(changedValues, allValues);
+
+        if (changedValues.price) {
+            form.setFieldsValue({total: allValues.amount * changedValues.price})
+        }
+
+        if (changedValues.amount) {
+            form.setFieldsValue({total: changedValues.amount * allValues.price})
+        }
+        
+        if (changedValues.total) {
+            form.setFieldsValue({price: changedValues.total / allValues.amount})
+        }
+    }
+
     if (portfolios.error) message.error(portfolios.error.message)
     if (createError) message.error(createError.message)
 
@@ -144,6 +160,7 @@ const CreateAssetOperationDrawer: React.FC<propTypes> = (props) => {
                     layout="vertical"
                     form={form}
                     onFinish={onSubmit}
+                    onValuesChange={changeFormHandler}
                     hideRequiredMark
                 >
                     <Row gutter={24}>
@@ -167,7 +184,7 @@ const CreateAssetOperationDrawer: React.FC<propTypes> = (props) => {
                         </Col>
                     </Row>
                     <Row gutter={24}>
-                        <Col span={16}>
+                        <Col span={12}>
                             <Form.Item
                                 name="ticket"
                                 label="Тикет"
@@ -181,21 +198,25 @@ const CreateAssetOperationDrawer: React.FC<propTypes> = (props) => {
                                 <Input placeholder="Тикет" size="large" />
                             </Form.Item>
                         </Col>
-                        <Col span={8}>
+                        <Col span={12}>
                             <Form.Item
-                                name="amount"
-                                label="Количество"
+                                name="date"
+                                label="Дата"
                                 rules={[
                                     {
                                         required: true,
-                                        message: "Введите количество",
+                                        message: "Введите дату",
                                     },
                                 ]}
                             >
-                                <InputNumber
-                                    min={1}
-                                    placeholder="1"
+                                <DatePicker
+                                    locale={ru_RU}
+                                    style={{ width: "100%" }}
+                                    format="DD.MM.YYYY"
                                     size="large"
+                                    getPopupContainer={(trigger) =>
+                                        trigger.parentElement ?? trigger
+                                    }
                                 />
                             </Form.Item>
                         </Col>
@@ -222,31 +243,50 @@ const CreateAssetOperationDrawer: React.FC<propTypes> = (props) => {
                         </Col>
                     </Row>
                     <Row gutter={24}>
-                        <Col span={16}>
+                        <Col span={5}>
                             <Form.Item
-                                name="date"
-                                label="Дата"
+                                name="amount"
+                                label="Количество"
                                 rules={[
                                     {
                                         required: true,
-                                        message: "Введите дату",
+                                        message: "Введите количество",
                                     },
                                 ]}
+                                initialValue={1}
                             >
-                                <DatePicker
-                                    locale={ru_RU}
-                                    style={{ width: "100%" }}
-                                    format="DD.MM.YYYY"
+                                <InputNumber
+                                    min={1}
+                                    placeholder="1"
+                                    style={{width: '100%'}}
                                     size="large"
-                                    getPopupContainer={(trigger) =>
-                                        trigger.parentElement ?? trigger
-                                    }
                                 />
                             </Form.Item>
                         </Col>
-                        <Col span={4}>
+                        <Col span={5}>
                             <Form.Item
                                 name="price"
+                                label="Цена за шт."
+                                rules={[
+                                    {
+                                        required: true,
+                                        message: "Введите цену",
+                                    },
+                                ]}
+                            >
+                                <InputNumber
+                                    min={0}
+                                    style={{width: '100%'}}
+                                    decimalSeparator=","
+                                    placeholder="0,0"
+                                    size="large"
+                                    stringMode
+                                />
+                            </Form.Item>
+                        </Col>
+                        <Col span={5} offset={4}>
+                            <Form.Item
+                                name="total"
                                 label="Сумма"
                                 rules={[
                                     {
@@ -254,18 +294,18 @@ const CreateAssetOperationDrawer: React.FC<propTypes> = (props) => {
                                         message: "Введите сумму",
                                     },
                                 ]}
-                                initialValue={0}
                             >
                                 <InputNumber
-                                    min={1}
-                                    precision={2}
+                                    min={0}
+                                    style={{width: '100%'}}
                                     decimalSeparator=","
-                                    placeholder="0.0"
+                                    placeholder="0,0"
                                     size="large"
+                                    stringMode
                                 />
                             </Form.Item>
                         </Col>
-                        <Col span={4}>
+                        <Col span={5}>
                             {getCurrencySelect()}
                         </Col>
                     </Row>
