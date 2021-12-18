@@ -1,39 +1,31 @@
 import { Col, message, Table, Tooltip } from "antd"
 import { Text, SmallText } from "GeneralStyles"
 import Card from "components/cards/Card"
-import React, { useEffect } from "react"
+import React from "react"
 import { getDoubleCurrency } from "helpers/financeHelpers"
 import { getNumericStringDate } from "helpers/dateHelpers"
-import { useAggregateFuturePaymentsLazyQuery } from "finance-types"
+import { useFuturePaymentsQuery } from "finance-types"
 
 type propTypes = {
-    portfolios: number[]
+    portfolioIds: number[]
 }
 
-const FuturePaymentsTable: React.FC<propTypes> = (props) => {
-    const [query, { data, loading, error }] = useAggregateFuturePaymentsLazyQuery()
-
-    useEffect(() => {
-        query({ variables: { portfolioIds: props.portfolios } })
-    }, [query, props.portfolios])
+const FuturePaymentsTable: React.FC<propTypes> = ({portfolioIds}) => {
+    const { data, loading, error } = useFuturePaymentsQuery({ variables: { portfolioIds } })
 
     if (error) message.error(error.message)
 
-    const payments = data?.aggregateFuturePayments?.result?.map((s, i) => {
-        return {
-            key: i,
-            ...s,
-        }
-    })
+    const payments = data?.futurePayments?.result || []
 
     return (
         <Col span={9}>
             <Card title="Ближайшие выплаты">
                 <Table
+                    rowKey={r => `${r.ticket}_${r.date}_${r.total}`}
                     columns={paymentColumns}
                     size="small"
                     loading={loading}
-                    dataSource={payments}
+                    dataSource={payments as any}
                     pagination={{
                         pageSize: 5,
                     }}
@@ -54,7 +46,7 @@ const paymentColumns = [
         render: (_items: any, item: any) => {
             return (
                 <>
-                    <Text>{item.name}</Text> <br />
+                    <Text>{item.assetName}</Text> <br />
                     <SmallText $color="grey2">{item.ticket}</SmallText>
                 </>
             )
@@ -67,25 +59,25 @@ const paymentColumns = [
         sorter: (a: any, b: any) => a.amount - b.amount,
     },
     {
-        key: "paymentValue",
+        key: "total",
         title: "Выплата",
         dataIndex: "paymentValue",
-        sorter: (a: any, b: any) => a.allPayment - b.allPayment,
+        sorter: (a: any, b: any) => a.total - b.total,
         render: (_items: any, item: any) => {
             return (
                 <Tooltip title={`Выплата за штуку: ${item.paymentValue} ₽`}>
-                    <span>{getDoubleCurrency(item.allPayment)}</span>
+                    <span>{getDoubleCurrency(item.total)}</span>
                 </Tooltip>
             )
         },
     },
     {
-        key: "registryCloseDate",
+        key: "date",
         title: "Дата",
-        dataIndex: "registryCloseDate",
-        sorter: (a: any, b: any) => Date.parse(a.registryCloseDate) - Date.parse(b.registryCloseDate),
+        dataIndex: "date",
+        sorter: (a: any, b: any) => Date.parse(a.date) - Date.parse(b.date),
         render: (_items: any, item: any) => {
-            return <Text>{getNumericStringDate(item.registryCloseDate)}</Text>
+            return <Text>{getNumericStringDate(item.date)}</Text>
         },
     },
 ]

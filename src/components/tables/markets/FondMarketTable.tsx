@@ -1,7 +1,7 @@
 import { Col, message, Space, Table, Tooltip } from "antd"
 import { SmallText } from "GeneralStyles"
 import Card from "components/cards/Card"
-import React, { useEffect } from "react"
+import React from "react"
 import { getDoubleCurrency } from "helpers/financeHelpers"
 import { useFondsQuery } from "finance-types"
 import { NumberIndicatior } from "components/numbers/Indicator"

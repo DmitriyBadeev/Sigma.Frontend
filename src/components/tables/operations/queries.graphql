@@ -60,6 +60,7 @@ query getAssetOperations($portfolioId: UUID!) {
       ticket
       amount
       price
+      total
       currency {
         name
         sign

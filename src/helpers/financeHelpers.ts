@@ -30,7 +30,8 @@ export const getCurrency = (number: number, currency: string = "₽") => {
     )}${NON_BREAKING_SPACE}${currency}`
 }
 
-export const getDoubleCurrency = (number: number, currencyTicket: string = "RUB") => {
+export const getDoubleCurrency = (number: number = 0, currencyTicket: string = "RUB") => {
+
     return number.toLocaleString("ru-RU", {
         style: "currency",
         currency: currencyTicket,
@@ -39,4 +40,12 @@ export const getDoubleCurrency = (number: number, currencyTicket: string = "RUB"
 
 export const getPercent = (percent: number) => {
     return `${percent.toLocaleString("ru")}${NON_BREAKING_SPACE}%`
+}
+
+export const toIntTwoSign = (number: number) => {
+    return Math.trunc(number * 100)
+}
+
+export const roundTwoSign = (number: number) => {
+    return Math.round(number * 100) / 100
 }

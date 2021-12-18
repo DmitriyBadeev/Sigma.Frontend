@@ -1,46 +1,29 @@
-import { Col, message, Space, Table, Tooltip } from "antd"
+import { Col, Space, Table, Tooltip } from "antd"
 import { H4, Text, SmallText } from "GeneralStyles"
 import Card from "components/cards/Card"
-import React, { useEffect } from "react"
-import { getDoubleCurrency } from "helpers/financeHelpers"
-import { getNumericStringDate } from "helpers/dateHelpers"
-import { useStockReportsLazyQuery } from "finance-types"
+import React from "react"
+import { getDoubleCurrency, roundTwoSign } from "helpers/financeHelpers"
+import { getNumericStringDateWithTime } from "helpers/dateHelpers"
 import { NumberIndicatior } from "components/numbers/Indicator"
 import Sparkline from "components/charts/Sparkline"
 import AssetIcon from "components/logo/AssetIcon"
 import Link from "components/links/Link"
 
 type propTypes = {
-    portfolios: number[]
+    stocks: any[]
 }
 
-const StockTable: React.FC<propTypes> = (props) => {
-    const [query, { data, loading, error }] = useStockReportsLazyQuery()
+const StockTable: React.FC<propTypes> = ({stocks}) => {
 
-    useEffect(() => {
-        query({
-            variables: {
-                portfolioIds: props.portfolios,
-            },
-        })
-    }, [query, props.portfolios])
-
-    if (error) message.error(error.message)
-
-    const reports = data?.aggregateStocks?.result?.map((s, i) => {
-        return {
-            key: i,
-            ...s,
-        }
-    })
+    const reports = stocks?.filter(s => s.amount > 0)
 
     return (
         <Col span={24}>
             <Card title={<H4>Акции</H4>}>
                 <Table
+                    rowKey={r => r.id}
                     columns={stockColumns}
                     size="small"
-                    loading={loading}
                     dataSource={reports}
                     pagination={false}
                 />
@@ -58,12 +41,12 @@ const stockColumns = [
         dataIndex: "name",
         render: (_items: any, item: any) => {
             return (
-                <Link to={`/market/${item.ticket}`}>
+                <Link to={`/market/${item.stock.ticket}`}>
                     <Space>
-                        <AssetIcon ticket={item.ticket} />
+                        <AssetIcon ticket={item.stock.ticket} />
                         <div>
-                            {item.name} <br />
-                            <SmallText $color="grey2">{item.ticket}</SmallText>
+                            {item.stock.shortName} <br />
+                            <SmallText $color="grey2">{item.stock.ticket}</SmallText>
                         </div>
                     </Space>
                 </Link>
@@ -80,13 +63,13 @@ const stockColumns = [
         key: "price",
         title: "Текущая цена",
         dataIndex: "price",
-        sorter: (a: any, b: any) => a.price - b.price,
+        sorter: (a: any, b: any) => a.stock.price - b.stock.price,
         render: (_items: any, item: any) => {
             return (
-                <Tooltip title={`Время обновления: ${item.updateTime}`}>
-                    <span>{getDoubleCurrency(item.price)}</span> <br />
+                <Tooltip title={`Время обновления: ${getNumericStringDateWithTime(item.stock.updateTime)}`}>
+                    <span>{getDoubleCurrency(item.stock.price)}</span> <br />
                     <NumberIndicatior
-                        number={item.priceChange}
+                        number={item.stock.priceChange}
                         type="percent"
                         size="small"
                     />
@@ -95,12 +78,12 @@ const stockColumns = [
         },
     },
     {
-        key: "allPrice",
+        key: "cost",
         title: "Стоимость",
-        dataIndex: "allPrice",
-        sorter: (a: any, b: any) => a.allPrice - b.allPrice,
+        dataIndex: "cost",
+        sorter: (a: any, b: any) => a.cost - b.cost,
         render: (_items: any, item: any) => {
-            return <Text>{getDoubleCurrency(item.allPrice)}</Text>
+            return <Text>{getDoubleCurrency(item.cost)}</Text>
         },
     },
     {
@@ -121,12 +104,12 @@ const stockColumns = [
             return (
                 <>
                     <NumberIndicatior
-                        number={item.paperProfit}
+                        number={roundTwoSign(item.paperProfit)}
                         type="currency"
                     />
                     <br />
                     <NumberIndicatior
-                        number={item.paperProfitPercent}
+                        number={roundTwoSign(item.paperProfitPercent * 100)}
                         type="percent"
                         size="small"
                     />
@@ -134,44 +117,44 @@ const stockColumns = [
             )
         },
     },
-    {
-        key: "paidDividends",
-        title: "Дивиденды",
-        dataIndex: "paidDividends",
-        sorter: (a: any, b: any) => a.paidDividends - b.paidDividends,
-        render: (_items: any, item: any) => {
-            if (item.nearestDividend !== null) {
-                const payment =
-                    (item.nearestDividend.paymentValue / 100) * item.amount
+    // {
+    //     key: "paidDividends",
+    //     title: "Дивиденды",
+    //     dataIndex: "paidDividends",
+    //     sorter: (a: any, b: any) => a.paidDividends - b.paidDividends,
+    //     render: (_items: any, item: any) => {
+    //         if (item.nearestDividend !== null) {
+    //             const payment =
+    //                 (item.nearestDividend.paymentValue / 100) * item.amount
 
-                return (
-                    <Tooltip
-                        title={`Ожидаемая выплата: ${payment.toLocaleString(
-                            "ru-RU",
-                            {
-                                style: "currency",
-                                currency: item.nearestDividend.currencyId,
-                            }
-                        )}
-                            \n
-                            Дата: ${getNumericStringDate(
-                                item.nearestDividend.registryCloseDate
-                            )}
-                        `}
-                    >
-                        {getDoubleCurrency(item.paidDividends)}
-                    </Tooltip>
-                )
-            } else {
-                return getDoubleCurrency(item.paidDividends)
-            }
-        },
-    },
+    //             return (
+    //                 <Tooltip
+    //                     title={`Ожидаемая выплата: ${payment.toLocaleString(
+    //                         "ru-RU",
+    //                         {
+    //                             style: "currency",
+    //                             currency: item.nearestDividend.currencyId,
+    //                         }
+    //                     )}
+    //                         \n
+    //                         Дата: ${getNumericStringDate(
+    //                             item.nearestDividend.registryCloseDate
+    //                         )}
+    //                     `}
+    //                 >
+    //                     {getDoubleCurrency(item.paidDividends)}
+    //                 </Tooltip>
+    //             )
+    //         } else {
+    //             return getDoubleCurrency(item.paidDividends)
+    //         }
+    //     },
+    // },
     {
         key: "Sparkline",
-        title: "Изменение за неделю",
+        title: "Изменение за месяц",
         render: (_items: any, item: any) => {
-            return <Sparkline ticket={item.ticket} />
+            return <Sparkline ticket={item.stock.ticket} />
         },
     },
 ]

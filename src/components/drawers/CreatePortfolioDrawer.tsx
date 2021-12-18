@@ -1,12 +1,16 @@
 import { Drawer, Form, Button, Col, Row, Input, Radio, message } from "antd"
 import { PlusOutlined } from "@ant-design/icons"
-import React, { useState } from "react"
+import React, { useEffect, useState } from "react"
 import styled from "styled-components"
 import {
     usePortfolioTypesQuery,
     useCreatePortfolioMutation,
+    usePortfoliosLazyQuery,
 } from "finance-types"
 import Loading from "components/loading/Loading"
+import { observer } from "mobx-react"
+import useStore from "store/useStore"
+import Portfolios from "pages/Portfolios"
 
 const Footer = styled.div`
     text-align: left;
@@ -19,12 +23,32 @@ const TypeIcon = styled.img`
     margin-right: 5px;
 `
 
-const CreatePortfolioDrawer: React.FC = () => {
+const CreatePortfolioDrawer: React.FC = observer(() => {
     const { data, loading, error } = usePortfolioTypesQuery()
-    const [createMutation, createPayloads] = useCreatePortfolioMutation()
+    const [portfoliosQuery, { data: portfoliosPayload }] = usePortfoliosLazyQuery({fetchPolicy: 'no-cache'})
+    const [createMutation, createPayloads] = useCreatePortfolioMutation({ refetchQueries: ['portfolios'], 
+        onCompleted: () => updatePortoflios() })
+    const { portfolioStore } = useStore()
 
     const [visible, setVisible] = useState(false)
     const [form] = Form.useForm()
+
+    const updatePortoflios = () => {
+        portfoliosQuery()
+    }
+
+    useEffect(() => {
+        const portfolios =
+            portfoliosPayload?.portfolios?.map((p) => ({
+                id: p?.id || 0,
+                name: p?.name || "",
+                iconUrl: p?.portfolioType?.iconUrl || "",
+            })) || []
+    
+        if (Portfolios.length > 0) {
+            portfolioStore.updatePortfolios(portfolios)
+        }
+    }, [portfoliosPayload])
 
     const showDrawer = () => {
         setVisible(true)
@@ -48,6 +72,7 @@ const CreatePortfolioDrawer: React.FC = () => {
         const result = response.data?.addPortfolio
         if (result?.isSuccess) {
             message.success(result?.message)
+            setVisible(false)
         } else {
             message.error(result?.message)
         }
@@ -145,6 +170,6 @@ const CreatePortfolioDrawer: React.FC = () => {
             </Drawer>
         </>
     )
-}
+})
 
 export default CreatePortfolioDrawer

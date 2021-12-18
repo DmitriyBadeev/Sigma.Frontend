@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react"
 import FadePage from "components/fade/FadePage"
-import CurrencyOperationsTable from "components/tables/operations/CurrencyOperationsTable"
-import AssetOperationsTable from "components/tables/operations/AssetOperationsTable"
+import PortfolioCurrencyOperationsTable from "components/tables/operations/PortfolioCurrencyOperationsTable"
+import PortfolioAssetOperationTable from "components/tables/operations/PortfolioAssetOperationTable"
 import { Col, message, Row, Select } from "antd"
 import { H3 } from "GeneralStyles"
 import { usePortfoliosQuery } from "finance-types"
@@ -76,12 +76,12 @@ const Operations: React.FC = () => {
                 <Tabs defaultActiveKey="1" size="large">
                     <TabPane tab="Сделки" key="1">
                         <Row gutter={[20, 20]}>
-                            <AssetOperationsTable portfolioId={selectedPortfolio}/>
+                            <PortfolioAssetOperationTable portfolioId={selectedPortfolio}/>
                         </Row>
                     </TabPane>
                     <TabPane tab="Зачисления / списания" key="2">
                         <Row gutter={[20, 20]}>
-                            <CurrencyOperationsTable portfolioId={selectedPortfolio}/>
+                            <PortfolioCurrencyOperationsTable portfolioId={selectedPortfolio}/>
                         </Row>
                     </TabPane>
                 </Tabs>

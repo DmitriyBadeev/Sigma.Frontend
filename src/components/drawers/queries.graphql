@@ -25,6 +25,51 @@ query getCurrencies {
   }
 }
 
+query parseAssetReport($report: Upload!) {
+  parseAssetReport(report: $report) {
+    ticket
+    assetType
+    assetAction
+    amount
+    price
+    total
+    currency {
+        id
+        sign
+    }
+    date
+  }
+}
+
+query parseCurrencyReport($report: Upload) {
+  parseCurrencyReport(report: $report) {
+    ticket
+    currency {
+      id
+      sign
+    }
+    total
+    amount
+    operationType
+    date
+    total    
+  }
+}
+
+mutation createAssetOperations($assetOperations: [AssetOperationInput]){
+  createAssetOperations(assetOperations: $assetOperations) {
+    isSuccess
+    message
+  }
+}
+
+mutation createCurrencyOperations($currencyOperations: [CurrencyOperationInput]) {
+  createCurrencyOperations(currencyOperations: $currencyOperations) {
+    isSuccess
+    message
+  }
+}
+
 # mutation refillBalance($portfolioId: Int!, $price: Int!, $date: DateTime!) {
 #     refillBalance(
 #         input: {

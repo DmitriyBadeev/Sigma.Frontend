@@ -1,15 +1,9 @@
-import { Col, message } from "antd"
-import React, { useEffect } from "react"
+import { Col } from "antd"
+import React from "react"
 import Card from "./Card"
-import { useAggregateBalanceLazyQuery } from "finance-types"
-import Loading from "components/loading/Loading"
 import styled from "styled-components"
 import { SmallText, Text } from "GeneralStyles"
-import { getCurrency } from "helpers/financeHelpers"
-
-type propTypes = {
-    portfolios: number[]
-}
+import { getDoubleCurrency } from "helpers/financeHelpers"
 
 const CurrencyWrapper = styled.div`
     display: inline-flex;
@@ -23,34 +17,13 @@ const CardWrapper = styled.div`
     height: 100%;
 `
 
-const BalanceCard: React.FC<propTypes> = (props) => {
-    const [query, { data, loading, error }] = useAggregateBalanceLazyQuery()
+type propTypes = {
+    rubBalance: number,
+    dollarBalance: number,
+    euroBalance: number
+}
 
-    useEffect(() => {
-        query({
-            variables: {
-                portfolioIds: props.portfolios,
-            },
-        })
-    }, [query, props.portfolios])
-
-    if (loading)
-        return (
-            <Col span={9}>
-                <Card title="Свободных средств">
-                    <Loading height="60px" />
-                </Card>
-            </Col>
-        )
-    if (error) message.error(error.message)
-
-    var isSuccess = data?.aggregateBalance?.isSuccess
-    var apiMessage = data?.aggregateBalance?.message
-    const balance = data?.aggregateBalance?.result || 0
-
-    if (data?.aggregateBalance && !isSuccess) {
-        message.error(apiMessage)
-    }
+const BalanceCard: React.FC<propTypes> = ({rubBalance, dollarBalance, euroBalance}) => {
 
     return (
         <Col span={9}>
@@ -59,19 +32,19 @@ const BalanceCard: React.FC<propTypes> = (props) => {
                     <CurrencyWrapper>
                         <SmallText $color="grey2">Рубли</SmallText>
                         <Text $bold $large>
-                            {getCurrency(balance)}
+                            {getDoubleCurrency(rubBalance)}
                         </Text>
                     </CurrencyWrapper>
                     <CurrencyWrapper>
                         <SmallText $color="grey2">Доллары</SmallText>
                         <Text $bold $large>
-                            {getCurrency(0, "$")}
+                            {getDoubleCurrency(dollarBalance, "USD")}
                         </Text>
                     </CurrencyWrapper>
                     <CurrencyWrapper>
                         <SmallText $color="grey2">Евро</SmallText>
                         <Text $bold $large>
-                            {getCurrency(0, "€")}
+                            {getDoubleCurrency(euroBalance, "EUR")}
                         </Text>
                     </CurrencyWrapper>
                 </CardWrapper>

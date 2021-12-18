@@ -1,7 +1,7 @@
-import React from "react"
+import React, { useEffect } from "react"
 import { H3, H4 } from "GeneralStyles"
 import FadePage from "components/fade/FadePage"
-import { Col, Row } from "antd"
+import { Col, message, Row } from "antd"
 import PortfolioSelector from "components/portfolios/PortfolioSelector"
 import styled from "styled-components"
 import DividendProfitCard from "components/cards/DividendProfitCard"
@@ -16,6 +16,8 @@ import BondTable from "components/tables/BondTable"
 import FuturePaymentsTable from "components/tables/FuturePaymentsTable"
 import PortfoliosChart from "components/charts/PortfoliosChart"
 import CreatePortfolioDrawer from "components/drawers/CreatePortfolioDrawer"
+import { useAggregatePortfoliosLazyQuery } from "finance-types"
+import Loading from "components/loading/Loading"
 
 const Content = styled(Row)`
     padding-top: 30px;
@@ -23,8 +25,19 @@ const Content = styled(Row)`
 
 const Portfolios: React.FC = observer(() => {
     const { portfolioStore } = useStore()
-    const portfolios = Array.from(portfolioStore.activePortfolioIds)
+    const selectedPortfolioIds = portfolioStore.activePortfolioIds
 
+    const [query, { data, loading, error }] = useAggregatePortfoliosLazyQuery()
+
+    useEffect(() => {
+        query({ variables: { portfolioIds: selectedPortfolioIds } })
+    }, [portfolioStore.activePortfolioIds])
+
+    const portfolio = data?.aggregatePortfolios?.result
+    console.log(portfolio);
+    
+    if (error) message.error(error.message)
+    
     return (
         <FadePage>
             <Row justify="space-between" align="middle">
@@ -32,23 +45,27 @@ const Portfolios: React.FC = observer(() => {
                 <CreatePortfolioDrawer />
             </Row>
             <PortfolioSelector />
-            <Content gutter={[20, 20]} hidden={portfolios.length === 0}>
-                <CostWithInvestSumCard portfolios={portfolios} />
-                <PaperProfitCard portfolios={portfolios} />
-                <DividendProfitCard portfolios={portfolios} />
-                <BalanceCard portfolios={portfolios} />
-                <PortfoliosChart portfolios={portfolios} />
-                <FuturePaymentsTable portfolios={portfolios} />
-                <StockTable portfolios={portfolios} />
-                <FondTable portfolios={portfolios} />
-                <BondTable portfolios={portfolios} />
-            </Content>
+            {
+                loading ? 
+                <Loading size="big" height="50vh" /> :
+                <Content gutter={[20, 20]} hidden={selectedPortfolioIds.length === 0}>
+                    <CostWithInvestSumCard cost={portfolio?.cost} investSum={portfolio?.investedSum} />
+                    <PaperProfitCard profit={portfolio?.paperProfit} percent={portfolio?.paperProfitPercent} />
+                    <DividendProfitCard dividendProfit={portfolio?.dividendProfit} percent={portfolio?.dividendProfitPercent} />
+                    <BalanceCard rubBalance={portfolio?.rubBalance} dollarBalance={portfolio?.dollarBalance} euroBalance={portfolio?.euroBalance}/>
+                    <PortfoliosChart portfolios={selectedPortfolioIds} />
+                    <FuturePaymentsTable portfolioIds={selectedPortfolioIds} />
+                    <StockTable stocks={portfolio?.portfolioStocks || []} />
+                    <FondTable fonds={portfolio?.portfolioFonds || []} />
+                    <BondTable bonds={portfolio?.portfolioBonds || []} />
+                </Content>
+            }
 
             <Content
                 gutter={[20, 20]}
                 hidden={
                     portfolioStore.portfolios.length === 0 ||
-                    portfolioStore.activePortfolioIds.size > 0
+                    portfolioStore.activePortfolioIds.length > 0
                 }
             >
                 <Col span={24}>

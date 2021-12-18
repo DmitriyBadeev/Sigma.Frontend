@@ -7,26 +7,26 @@ export type portfolioDataType = {
 }
 
 export class PortfolioStore {
-    portfolios: portfolioDataType[] = []
+    @observable portfolios: portfolioDataType[] = []
     firstUpdate: boolean = false
 
-    @observable activePortfolioIds = new Set<number>()
+    @observable activePortfolioIds = new Array<number>()
 
     @action togglePortfolio(id: number) {
-        const hasId = this.activePortfolioIds.has(id)
+        const hasId = this.activePortfolioIds.includes(id)
 
         if (hasId) {
-            this.activePortfolioIds.delete(id)
+            this.activePortfolioIds = this.activePortfolioIds.filter(pId => pId !== id)
         } else {
-            this.activePortfolioIds.add(id)
+            this.activePortfolioIds = [...this.activePortfolioIds, id]
         }
     }
 
-    updatePortfolios(portfolios: portfolioDataType[]) {
-        if (!this.firstUpdate) {
+    @action updatePortfolios(portfolios: portfolioDataType[]) {
+        if (!this.firstUpdate || portfolios.length !== this.portfolios.length) {
             this.portfolios = portfolios
 
-            if (portfolios.length > 0) {
+            if (portfolios.length > 0 && !this.firstUpdate) {
                 const firstPortfolioId = portfolios[0].id
 
                 this.togglePortfolio(firstPortfolioId)
@@ -37,6 +37,6 @@ export class PortfolioStore {
     }
 
     isActive(id: number) {
-        return this.activePortfolioIds.has(id)
+        return this.activePortfolioIds.includes(id)
     }
 }

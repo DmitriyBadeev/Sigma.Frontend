@@ -1,53 +1,17 @@
 import React from "react"
-import { Button, Col, message, Popconfirm, Row, Table } from "antd"
-import Card from "components/cards/Card"
-import { H4, Text } from "GeneralStyles"
+import { Table, TableProps } from "antd"
+import { Text } from "GeneralStyles"
 import { getNumericStringDate } from "helpers/dateHelpers"
-import {
-    OperationType,
-    useGetCurrencyOperationsQuery,
-    useRemoveCurrencyOperationMutation
-} from "finance-types"
+import { OperationType } from "finance-types"
 import { getDoubleCurrency } from "helpers/financeHelpers"
-import CreateCurrencyOperationDrawer from "components/drawers/CreateCurrencyOperationDrawer"
-import { DeleteOutlined } from "@ant-design/icons"
 
 type Props = {
-    portfolioId: string
+    loading: boolean
+    data: any
+    deleteColumnRender?: (value: any, index: number) => JSX.Element
 }
 
-const CurrencyOperationsTable: React.FC<Props> = ({ portfolioId }) => {
-    const { data, loading, error, refetch } = useGetCurrencyOperationsQuery({variables: { portfolioId }})
-    const [mutation, payloads] = useRemoveCurrencyOperationMutation()
-
-    if (error) message.error(error.message)
-
-    const preparedData = data?.currencyOperations?.result?.map((s, i) => {
-        return {
-            key: i,
-            ...s,
-        }
-    })
-
-    const deleteHandler = (id: any) => {
-        mutation({variables: { currencyOperationId: id }})
-            .then(value => {
-                const isSuccess = value.data?.removeCurrencyOperation?.isSuccess
-
-                if (isSuccess) {
-                    message.success("Операция удалена")
-                    refetch()
-                } else {
-                    message.error(value.data?.removeCurrencyOperation?.message || "Произошла неизвестная ошибка")
-                }
-            })
-            .catch(error => {
-                console.log(error);
-                message.error(error.message)
-            })
-        
-    }
-
+const CurrencyOperationsTable: React.FC<Props & TableProps<any>> = ({ loading, data, deleteColumnRender, ...tableProps }) => {
     const getOperationTypeName = (item: any) => {
         switch (item) {
             case OperationType.Commission:
@@ -58,7 +22,7 @@ const CurrencyOperationsTable: React.FC<Props> = ({ portfolioId }) => {
                 return "Дивиденд"
             case OperationType.RefillAction:
                 return "Пополнение"
-            case OperationType.RefillAction:
+            case OperationType.WithdrawalAction:
                 return "Списание"
             default:
                 return "—"
@@ -110,39 +74,19 @@ const CurrencyOperationsTable: React.FC<Props> = ({ portfolioId }) => {
         {
             key: "actions",
             width: 100,
-            render: (value: any) => {
-                return <Popconfirm title="Вы уверены, что хотите удалить операцию?" onConfirm={() => deleteHandler(value.id)}>
-                        <Button type="text" danger icon={<DeleteOutlined />} loading={payloads.loading}>
-                            Удалить
-                        </Button>
-                    </Popconfirm>
-            }
+            render: (value: any, _: any, index: number) => deleteColumnRender && deleteColumnRender(value, index)
         },
     ]
     
-    return (
-        <Col span={24}>
-            <Card
-                title={
-                    <Row justify="space-between">
-                        <H4>Валютные операции</H4>
-                        <CreateCurrencyOperationDrawer
-                            update={() => refetch()}
-                            portfolioId={portfolioId}
-                        />
-                    </Row>
-                }
-            >
-                <Table
-                    columns={columns}
-                    size="small"
-                    loading={loading}
-                    dataSource={preparedData}
-                    style={{ marginTop: "1rem" }}
-                />
-            </Card>
-        </Col>
-    )
+    return <Table
+            columns={columns}
+            size="small"
+            loading={loading}
+            dataSource={data}
+            style={{ marginTop: "1rem" }}
+            rowKey={r => `${r.operationType}_${r.operationType}_${Date.parse(r.date)}_${r.amount}_${Math.random() * 1000}`}
+            {...tableProps}
+        />
 }
 
 export default CurrencyOperationsTable

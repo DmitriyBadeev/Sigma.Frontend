@@ -1,92 +1,3 @@
-query stockReports($portfolioIds: [UUID!]) {
-    aggregateStocks(portfolioIds: $portfolioIds) {
-        isSuccess
-        message
-        result {
-            name
-            ticket
-            amount
-            price
-            priceChange
-            allPrice
-            boughtPrice
-            paperProfit
-            paperProfitPercent
-            nearestDividend {
-                currencyId
-                paymentValue
-                allPayment
-                registryCloseDate
-            }
-            paidDividends
-            updateTime
-        }
-    }
-}
-
-query fondReports($portfolioIds: [UUID!]) {
-    aggregateFonds(portfolioIds: $portfolioIds) {
-        isSuccess
-        message
-        result {
-            name
-            ticket
-            amount
-            price
-            priceChange
-            allPrice
-            boughtPrice
-            paperProfit
-            paperProfitPercent
-            updateTime
-        }
-    }
-}
-
-query bondReports($portfolioIds: [UUID!]) {
-    aggregateBonds(portfolioIds: $portfolioIds) {
-        isSuccess
-        message
-        result {
-            name
-            ticket
-            amount
-            price
-            priceChange
-            allPrice
-            boughtPrice
-            paperProfit
-            paperProfitPercent
-            nearestPayment {
-                currencyId
-                paymentValue
-                allPayment
-                registryCloseDate
-            }
-            paidPayments
-            updateTime
-            amortizationDate
-            hasAmortized
-        }
-    }
-}
-
-query aggregateFuturePayments($portfolioIds: [UUID!]) {
-    aggregateFuturePayments(portfolioIds: $portfolioIds) {
-        isSuccess
-        message
-        result {
-            name
-            ticket
-            amount
-            allPayment
-            paymentValue
-            registryCloseDate
-            currencyId
-        }
-    }
-}
-
 query stocks {
     stocks {
         id
@@ -125,4 +36,22 @@ query bonds {
         nominal
         updateTime
     }
+}
+
+query futurePayments($portfolioIds: [UUID!]) {
+  futurePayments(portfolioIds: $portfolioIds) {
+    isSuccess
+    message
+    result {
+      ticket
+      assetName
+      paymentValue
+      amount
+      total
+      date
+      currency {
+        sign
+      }
+    }
+  }
 }

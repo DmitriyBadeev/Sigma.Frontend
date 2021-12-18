@@ -12,6 +12,8 @@ export type Scalars = {
   Boolean: boolean;
   Int: number;
   Float: number;
+  /** The `Upload` scalar type represents a file upload. */
+  Upload: any;
   UUID: any;
   /** The `DateTime` scalar represents an ISO-8601 compliant date time type. */
   DateTime: any;
@@ -20,6 +22,7 @@ export type Scalars = {
   /** The `Long` scalar type represents non-fractional signed whole 64-bit numeric values. Long can represent values between -(2^63) and 2^63 - 1. */
   Long: any;
 };
+
 
 
 
@@ -40,20 +43,13 @@ export type Query = {
   assetOperations?: Maybe<DefaultPayloadOfListOfAssetOperation>;
   currencyOperations?: Maybe<DefaultPayloadOfListOfCurrencyOperation>;
   currencyOperationTypes?: Maybe<Array<Maybe<Scalars['String']>>>;
-  aggregateBalance?: Maybe<DefaultPayloadOfDecimal>;
-  aggregateInvestSum?: Maybe<DefaultPayloadOfDecimal>;
-  aggregateFuturePayments?: Maybe<DefaultPayloadOfListOfPaymentData>;
-  aggregatePortfolioPaymentProfit?: Maybe<DefaultPayloadOfValuePercent>;
-  aggregatePortfolioPaperProfit?: Maybe<DefaultPayloadOfValuePercent>;
-  aggregatePortfolioCost?: Maybe<DefaultPayloadOfDecimal>;
-  aggregatePortfolioCostWithInvestSum?: Maybe<DefaultPayloadOfCostWithInvestSum>;
-  aggregateStocks?: Maybe<DefaultPayloadOfListOfStockReport>;
-  aggregateFonds?: Maybe<DefaultPayloadOfListOfFondReport>;
-  aggregateBonds?: Maybe<DefaultPayloadOfListOfBondReport>;
+  aggregatePortfolios?: Maybe<DefaultPayloadOfPortfolio>;
   stockCandles?: Maybe<Array<Maybe<StockCandle>>>;
-  portfolioCostGraph?: Maybe<Array<Maybe<TimeValue>>>;
   aggregatePortfolioCostGraph?: Maybe<Array<Maybe<CostGraphData>>>;
   secretData?: Maybe<Scalars['String']>;
+  parseAssetReport?: Maybe<Array<Maybe<AssetOperation>>>;
+  parseCurrencyReport?: Maybe<Array<Maybe<CurrencyOperation>>>;
+  futurePayments?: Maybe<DefaultPayloadOfListOfPaymentData>;
 };
 
 
@@ -67,52 +63,7 @@ export type QueryCurrencyOperationsArgs = {
 };
 
 
-export type QueryAggregateBalanceArgs = {
-  portfolioIds?: Maybe<Array<Scalars['UUID']>>;
-};
-
-
-export type QueryAggregateInvestSumArgs = {
-  portfolioIds?: Maybe<Array<Scalars['UUID']>>;
-};
-
-
-export type QueryAggregateFuturePaymentsArgs = {
-  portfolioIds?: Maybe<Array<Scalars['UUID']>>;
-};
-
-
-export type QueryAggregatePortfolioPaymentProfitArgs = {
-  portfolioIds?: Maybe<Array<Scalars['UUID']>>;
-};
-
-
-export type QueryAggregatePortfolioPaperProfitArgs = {
-  portfolioIds?: Maybe<Array<Scalars['UUID']>>;
-};
-
-
-export type QueryAggregatePortfolioCostArgs = {
-  portfolioIds?: Maybe<Array<Scalars['UUID']>>;
-};
-
-
-export type QueryAggregatePortfolioCostWithInvestSumArgs = {
-  portfolioIds?: Maybe<Array<Scalars['UUID']>>;
-};
-
-
-export type QueryAggregateStocksArgs = {
-  portfolioIds?: Maybe<Array<Scalars['UUID']>>;
-};
-
-
-export type QueryAggregateFondsArgs = {
-  portfolioIds?: Maybe<Array<Scalars['UUID']>>;
-};
-
-
-export type QueryAggregateBondsArgs = {
+export type QueryAggregatePortfoliosArgs = {
   portfolioIds?: Maybe<Array<Scalars['UUID']>>;
 };
 
@@ -124,12 +75,22 @@ export type QueryStockCandlesArgs = {
 };
 
 
-export type QueryPortfolioCostGraphArgs = {
-  portfolioId: Scalars['Int'];
+export type QueryAggregatePortfolioCostGraphArgs = {
+  portfolioIds?: Maybe<Array<Scalars['UUID']>>;
 };
 
 
-export type QueryAggregatePortfolioCostGraphArgs = {
+export type QueryParseAssetReportArgs = {
+  report?: Maybe<Scalars['Upload']>;
+};
+
+
+export type QueryParseCurrencyReportArgs = {
+  report?: Maybe<Scalars['Upload']>;
+};
+
+
+export type QueryFuturePaymentsArgs = {
   portfolioIds?: Maybe<Array<Scalars['UUID']>>;
 };
 
@@ -142,6 +103,8 @@ export type Mutation = {
   removeAssetOperation?: Maybe<DefaultPayload>;
   createCurrencyOperation?: Maybe<DefaultPayload>;
   removeCurrencyOperation?: Maybe<DefaultPayload>;
+  createAssetOperations?: Maybe<DefaultPayload>;
+  createCurrencyOperations?: Maybe<DefaultPayload>;
 };
 
 
@@ -179,6 +142,16 @@ export type MutationRemoveCurrencyOperationArgs = {
   currencyOperationId: Scalars['UUID'];
 };
 
+
+export type MutationCreateAssetOperationsArgs = {
+  assetOperations?: Maybe<Array<Maybe<AssetOperationInput>>>;
+};
+
+
+export type MutationCreateCurrencyOperationsArgs = {
+  currencyOperations?: Maybe<Array<Maybe<CurrencyOperationInput>>>;
+};
+
 export type PortfolioType = {
   __typename?: 'PortfolioType';
   id: Scalars['UUID'];
@@ -192,6 +165,15 @@ export type Portfolio = {
   id: Scalars['UUID'];
   userId?: Maybe<Scalars['String']>;
   name?: Maybe<Scalars['String']>;
+  cost: Scalars['Decimal'];
+  investedSum: Scalars['Decimal'];
+  paperProfit: Scalars['Decimal'];
+  paperProfitPercent: Scalars['Decimal'];
+  dividendProfit: Scalars['Decimal'];
+  dividendProfitPercent: Scalars['Decimal'];
+  rubBalance: Scalars['Decimal'];
+  dollarBalance: Scalars['Decimal'];
+  euroBalance: Scalars['Decimal'];
   portfolioTypeId: Scalars['UUID'];
   portfolioType?: Maybe<PortfolioType>;
   assetOperations?: Maybe<Array<Maybe<AssetOperation>>>;
@@ -233,6 +215,7 @@ export type Stock = {
   priceChange: Scalars['Decimal'];
   updateTime: Scalars['DateTime'];
   portfolioStocks?: Maybe<Array<Maybe<PortfolioStock>>>;
+  dividends?: Maybe<Array<Maybe<Dividend>>>;
 };
 
 export type Fond = {
@@ -267,6 +250,7 @@ export type Bond = {
   nominal: Scalars['Decimal'];
   coupon: Scalars['Decimal'];
   portfolioBonds?: Maybe<Array<Maybe<PortfolioBond>>>;
+  coupons?: Maybe<Array<Maybe<Coupon>>>;
 };
 
 export type DefaultPayloadOfListOfAssetOperation = {
@@ -284,53 +268,11 @@ export type DefaultPayloadOfListOfCurrencyOperation = {
   result?: Maybe<Array<Maybe<CurrencyOperation>>>;
 };
 
-export type DefaultPayloadOfDecimal = {
-  __typename?: 'DefaultPayloadOfDecimal';
+export type DefaultPayloadOfPortfolio = {
+  __typename?: 'DefaultPayloadOfPortfolio';
   isSuccess: Scalars['Boolean'];
   message?: Maybe<Scalars['String']>;
-  result: Scalars['Decimal'];
-};
-
-export type DefaultPayloadOfListOfPaymentData = {
-  __typename?: 'DefaultPayloadOfListOfPaymentData';
-  isSuccess: Scalars['Boolean'];
-  message?: Maybe<Scalars['String']>;
-  result?: Maybe<Array<Maybe<PaymentData>>>;
-};
-
-export type DefaultPayloadOfValuePercent = {
-  __typename?: 'DefaultPayloadOfValuePercent';
-  isSuccess: Scalars['Boolean'];
-  message?: Maybe<Scalars['String']>;
-  result?: Maybe<ValuePercent>;
-};
-
-export type DefaultPayloadOfCostWithInvestSum = {
-  __typename?: 'DefaultPayloadOfCostWithInvestSum';
-  isSuccess: Scalars['Boolean'];
-  message?: Maybe<Scalars['String']>;
-  result?: Maybe<CostWithInvestSum>;
-};
-
-export type DefaultPayloadOfListOfStockReport = {
-  __typename?: 'DefaultPayloadOfListOfStockReport';
-  isSuccess: Scalars['Boolean'];
-  message?: Maybe<Scalars['String']>;
-  result?: Maybe<Array<Maybe<StockReport>>>;
-};
-
-export type DefaultPayloadOfListOfFondReport = {
-  __typename?: 'DefaultPayloadOfListOfFondReport';
-  isSuccess: Scalars['Boolean'];
-  message?: Maybe<Scalars['String']>;
-  result?: Maybe<Array<Maybe<FondReport>>>;
-};
-
-export type DefaultPayloadOfListOfBondReport = {
-  __typename?: 'DefaultPayloadOfListOfBondReport';
-  isSuccess: Scalars['Boolean'];
-  message?: Maybe<Scalars['String']>;
-  result?: Maybe<Array<Maybe<BondReport>>>;
+  result?: Maybe<Portfolio>;
 };
 
 export type StockCandle = {
@@ -352,17 +294,48 @@ export enum CandleInterval {
   Hour = 'HOUR'
 }
 
-export type TimeValue = {
-  __typename?: 'TimeValue';
-  date: Scalars['Long'];
-  value: Scalars['Int'];
-};
-
 export type CostGraphData = {
   __typename?: 'CostGraphData';
   portfolioId: Scalars['Int'];
   portfolioName?: Maybe<Scalars['String']>;
   data?: Maybe<Array<Maybe<TimeValue>>>;
+};
+
+export type AssetOperation = {
+  __typename?: 'AssetOperation';
+  id: Scalars['UUID'];
+  ticket: Scalars['String'];
+  amount: Scalars['Int'];
+  price: Scalars['Decimal'];
+  total: Scalars['Decimal'];
+  currencyId: Scalars['UUID'];
+  currency?: Maybe<Currency>;
+  date: Scalars['DateTime'];
+  portfolio?: Maybe<Portfolio>;
+  portfolioId: Scalars['UUID'];
+  assetType: AssetType;
+  assetAction: AssetAction;
+};
+
+export type CurrencyOperation = {
+  __typename?: 'CurrencyOperation';
+  id: Scalars['UUID'];
+  currencyId: Scalars['UUID'];
+  currency?: Maybe<Currency>;
+  total: Scalars['Decimal'];
+  date: Scalars['DateTime'];
+  operationType: OperationType;
+  portfolioId: Scalars['UUID'];
+  portfolio?: Maybe<Portfolio>;
+  ticket?: Maybe<Scalars['String']>;
+  amount?: Maybe<Scalars['Int']>;
+};
+
+export type DefaultPayloadOfListOfPaymentData = {
+  __typename?: 'DefaultPayloadOfListOfPaymentData';
+  isSuccess: Scalars['Boolean'];
+  message?: Maybe<Scalars['String']>;
+  result?: Maybe<Array<Maybe<PaymentData>>>;
 };
 
 export type DefaultPayload = {
@@ -427,75 +400,44 @@ export enum AssetType {
 }
 
 
-export type BondReport = {
-  __typename?: 'BondReport';
-  name?: Maybe<Scalars['String']>;
-  ticket?: Maybe<Scalars['String']>;
-  amount: Scalars['Int'];
-  price: Scalars['Float'];
-  priceChange: Scalars['Float'];
-  allPrice: Scalars['Float'];
-  boughtPrice: Scalars['Float'];
-  paperProfit: Scalars['Float'];
-  paperProfitPercent: Scalars['Float'];
-  nearestPayment?: Maybe<PaymentData>;
-  paidPayments: Scalars['Float'];
-  updateTime?: Maybe<Scalars['String']>;
-  amortizationDate: Scalars['DateTime'];
-  hasAmortized: Scalars['Boolean'];
-};
-
-export type FondReport = {
-  __typename?: 'FondReport';
-  name?: Maybe<Scalars['String']>;
-  ticket?: Maybe<Scalars['String']>;
-  amount: Scalars['Int'];
-  price: Scalars['Float'];
-  priceChange: Scalars['Float'];
-  allPrice: Scalars['Float'];
-  boughtPrice: Scalars['Float'];
-  paperProfit: Scalars['Float'];
-  paperProfitPercent: Scalars['Float'];
-  updateTime?: Maybe<Scalars['String']>;
-};
-
-export type StockReport = {
-  __typename?: 'StockReport';
-  name?: Maybe<Scalars['String']>;
-  ticket?: Maybe<Scalars['String']>;
-  amount: Scalars['Int'];
-  price: Scalars['Decimal'];
-  priceChange: Scalars['Decimal'];
-  allPrice: Scalars['Decimal'];
-  boughtPrice: Scalars['Decimal'];
-  paperProfit: Scalars['Decimal'];
-  paperProfitPercent: Scalars['Decimal'];
-  nearestDividend?: Maybe<PaymentData>;
-  paidDividends: Scalars['Decimal'];
-  updateTime?: Maybe<Scalars['String']>;
-};
-
-export type CostWithInvestSum = {
-  __typename?: 'CostWithInvestSum';
-  cost: Scalars['Decimal'];
-  investSum: Scalars['Decimal'];
-};
-
-export type ValuePercent = {
-  __typename?: 'ValuePercent';
-  value: Scalars['Decimal'];
-  percent: Scalars['Decimal'];
-};
-
 export type PaymentData = {
   __typename?: 'PaymentData';
-  name?: Maybe<Scalars['String']>;
+  assetName?: Maybe<Scalars['String']>;
   ticket?: Maybe<Scalars['String']>;
   paymentValue: Scalars['Decimal'];
   amount: Scalars['Int'];
-  allPayment: Scalars['Int'];
+  total: Scalars['Decimal'];
+  date: Scalars['DateTime'];
+  currency?: Maybe<Currency>;
+};
+
+export type TimeValue = {
+  __typename?: 'TimeValue';
+  date: Scalars['Long'];
+  value: Scalars['Int'];
+};
+
+export type Coupon = {
+  __typename?: 'Coupon';
+  id: Scalars['UUID'];
+  couponDate: Scalars['DateTime'];
+  value: Scalars['Decimal'];
+  valuePercent: Scalars['Decimal'];
+  currency?: Maybe<Currency>;
+  currencyId: Scalars['UUID'];
+  bond?: Maybe<Bond>;
+  bondId: Scalars['UUID'];
+};
+
+export type Dividend = {
+  __typename?: 'Dividend';
+  id: Scalars['UUID'];
   registryCloseDate: Scalars['DateTime'];
-  currencyId?: Maybe<Scalars['String']>;
+  value: Scalars['Decimal'];
+  currency?: Maybe<Currency>;
+  currencyId: Scalars['UUID'];
+  stock?: Maybe<Stock>;
+  stockId: Scalars['UUID'];
 };
 
 
@@ -504,6 +446,9 @@ export type PortfolioBond = {
   id: Scalars['UUID'];
   amount: Scalars['Int'];
   boughtPrice: Scalars['Decimal'];
+  cost: Scalars['Decimal'];
+  paperProfit: Scalars['Decimal'];
+  paperProfitPercent: Scalars['Decimal'];
   portfolio?: Maybe<Portfolio>;
   portfolioId: Scalars['UUID'];
   bondId: Scalars['UUID'];
@@ -515,6 +460,9 @@ export type PortfolioFond = {
   id: Scalars['UUID'];
   amount: Scalars['Int'];
   boughtPrice: Scalars['Decimal'];
+  cost: Scalars['Decimal'];
+  paperProfit: Scalars['Decimal'];
+  paperProfitPercent: Scalars['Decimal'];
   portfolio?: Maybe<Portfolio>;
   portfolioId: Scalars['UUID'];
   fondId: Scalars['UUID'];
@@ -526,6 +474,9 @@ export type PortfolioStock = {
   id: Scalars['UUID'];
   amount: Scalars['Int'];
   boughtPrice: Scalars['Decimal'];
+  cost: Scalars['Decimal'];
+  paperProfit: Scalars['Decimal'];
+  paperProfitPercent: Scalars['Decimal'];
   portfolio?: Maybe<Portfolio>;
   portfolioId: Scalars['UUID'];
   stockId: Scalars['UUID'];
@@ -543,99 +494,6 @@ export type DailyPortfolioReport = {
   portfolioId: Scalars['UUID'];
   portfolio?: Maybe<Portfolio>;
 };
-
-export type CurrencyOperation = {
-  __typename?: 'CurrencyOperation';
-  id: Scalars['UUID'];
-  currencyId: Scalars['UUID'];
-  currency?: Maybe<Currency>;
-  total: Scalars['Decimal'];
-  date: Scalars['DateTime'];
-  operationType: OperationType;
-  portfolioId: Scalars['UUID'];
-  portfolio?: Maybe<Portfolio>;
-  ticket?: Maybe<Scalars['String']>;
-  amount?: Maybe<Scalars['Int']>;
-};
-
-export type AssetOperation = {
-  __typename?: 'AssetOperation';
-  id: Scalars['UUID'];
-  ticket: Scalars['String'];
-  amount: Scalars['Int'];
-  price: Scalars['Decimal'];
-  currencyId: Scalars['UUID'];
-  currency?: Maybe<Currency>;
-  date: Scalars['DateTime'];
-  portfolio?: Maybe<Portfolio>;
-  portfolioId: Scalars['UUID'];
-  assetType: AssetType;
-  assetAction: AssetAction;
-};
-
-export type AggregatePortfolioPaymentProfitQueryVariables = Exact<{
-  portfolioIds?: Maybe<Array<Scalars['UUID']> | Scalars['UUID']>;
-}>;
-
-
-export type AggregatePortfolioPaymentProfitQuery = (
-  { __typename?: 'Query' }
-  & { aggregatePortfolioPaymentProfit?: Maybe<(
-    { __typename?: 'DefaultPayloadOfValuePercent' }
-    & Pick<DefaultPayloadOfValuePercent, 'isSuccess' | 'message'>
-    & { result?: Maybe<(
-      { __typename?: 'ValuePercent' }
-      & Pick<ValuePercent, 'value' | 'percent'>
-    )> }
-  )> }
-);
-
-export type AggregatePortfolioPaperProfitQueryVariables = Exact<{
-  portfolioIds?: Maybe<Array<Scalars['UUID']> | Scalars['UUID']>;
-}>;
-
-
-export type AggregatePortfolioPaperProfitQuery = (
-  { __typename?: 'Query' }
-  & { aggregatePortfolioPaperProfit?: Maybe<(
-    { __typename?: 'DefaultPayloadOfValuePercent' }
-    & Pick<DefaultPayloadOfValuePercent, 'isSuccess' | 'message'>
-    & { result?: Maybe<(
-      { __typename?: 'ValuePercent' }
-      & Pick<ValuePercent, 'value' | 'percent'>
-    )> }
-  )> }
-);
-
-export type AggregatePortfolioCostWithInvestSumQueryVariables = Exact<{
-  portfolioIds?: Maybe<Array<Scalars['UUID']> | Scalars['UUID']>;
-}>;
-
-
-export type AggregatePortfolioCostWithInvestSumQuery = (
-  { __typename?: 'Query' }
-  & { aggregatePortfolioCostWithInvestSum?: Maybe<(
-    { __typename?: 'DefaultPayloadOfCostWithInvestSum' }
-    & Pick<DefaultPayloadOfCostWithInvestSum, 'isSuccess' | 'message'>
-    & { result?: Maybe<(
-      { __typename?: 'CostWithInvestSum' }
-      & Pick<CostWithInvestSum, 'cost' | 'investSum'>
-    )> }
-  )> }
-);
-
-export type AggregateBalanceQueryVariables = Exact<{
-  portfolioIds?: Maybe<Array<Scalars['UUID']> | Scalars['UUID']>;
-}>;
-
-
-export type AggregateBalanceQuery = (
-  { __typename?: 'Query' }
-  & { aggregateBalance?: Maybe<(
-    { __typename?: 'DefaultPayloadOfDecimal' }
-    & Pick<DefaultPayloadOfDecimal, 'isSuccess' | 'message' | 'result'>
-  )> }
-);
 
 export type AggregatePortfolioCostGraphQueryVariables = Exact<{
   portfolioIds?: Maybe<Array<Scalars['UUID']> | Scalars['UUID']>;
@@ -720,6 +578,66 @@ export type GetCurrenciesQuery = (
   )>>> }
 );
 
+export type ParseAssetReportQueryVariables = Exact<{
+  report: Scalars['Upload'];
+}>;
+
+
+export type ParseAssetReportQuery = (
+  { __typename?: 'Query' }
+  & { parseAssetReport?: Maybe<Array<Maybe<(
+    { __typename?: 'AssetOperation' }
+    & Pick<AssetOperation, 'ticket' | 'assetType' | 'assetAction' | 'amount' | 'price' | 'total' | 'date'>
+    & { currency?: Maybe<(
+      { __typename?: 'Currency' }
+      & Pick<Currency, 'id' | 'sign'>
+    )> }
+  )>>> }
+);
+
+export type ParseCurrencyReportQueryVariables = Exact<{
+  report?: Maybe<Scalars['Upload']>;
+}>;
+
+
+export type ParseCurrencyReportQuery = (
+  { __typename?: 'Query' }
+  & { parseCurrencyReport?: Maybe<Array<Maybe<(
+    { __typename?: 'CurrencyOperation' }
+    & Pick<CurrencyOperation, 'ticket' | 'total' | 'amount' | 'operationType' | 'date'>
+    & { currency?: Maybe<(
+      { __typename?: 'Currency' }
+      & Pick<Currency, 'id' | 'sign'>
+    )> }
+  )>>> }
+);
+
+export type CreateAssetOperationsMutationVariables = Exact<{
+  assetOperations?: Maybe<Array<Maybe<AssetOperationInput>> | Maybe<AssetOperationInput>>;
+}>;
+
+
+export type CreateAssetOperationsMutation = (
+  { __typename?: 'Mutation' }
+  & { createAssetOperations?: Maybe<(
+    { __typename?: 'DefaultPayload' }
+    & Pick<DefaultPayload, 'isSuccess' | 'message'>
+  )> }
+);
+
+export type CreateCurrencyOperationsMutationVariables = Exact<{
+  currencyOperations?: Maybe<Array<Maybe<CurrencyOperationInput>> | Maybe<CurrencyOperationInput>>;
+}>;
+
+
+export type CreateCurrencyOperationsMutation = (
+  { __typename?: 'Mutation' }
+  & { createCurrencyOperations?: Maybe<(
+    { __typename?: 'DefaultPayload' }
+    & Pick<DefaultPayload, 'isSuccess' | 'message'>
+  )> }
+);
+
 export type PortfoliosQueryVariables = Exact<{ [key: string]: never; }>;
 
 
@@ -786,7 +704,7 @@ export type GetAssetOperationsQuery = (
     & Pick<DefaultPayloadOfListOfAssetOperation, 'isSuccess' | 'message'>
     & { result?: Maybe<Array<Maybe<(
       { __typename?: 'AssetOperation' }
-      & Pick<AssetOperation, 'id' | 'assetAction' | 'ticket' | 'amount' | 'price' | 'date' | 'assetType'>
+      & Pick<AssetOperation, 'id' | 'assetAction' | 'ticket' | 'amount' | 'price' | 'total' | 'date' | 'assetType'>
       & { currency?: Maybe<(
         { __typename?: 'Currency' }
         & Pick<Currency, 'name' | 'sign' | 'ticket'>
@@ -856,82 +774,6 @@ export type RemoveCurrencyOperationMutation = (
   )> }
 );
 
-export type StockReportsQueryVariables = Exact<{
-  portfolioIds?: Maybe<Array<Scalars['UUID']> | Scalars['UUID']>;
-}>;
-
-
-export type StockReportsQuery = (
-  { __typename?: 'Query' }
-  & { aggregateStocks?: Maybe<(
-    { __typename?: 'DefaultPayloadOfListOfStockReport' }
-    & Pick<DefaultPayloadOfListOfStockReport, 'isSuccess' | 'message'>
-    & { result?: Maybe<Array<Maybe<(
-      { __typename?: 'StockReport' }
-      & Pick<StockReport, 'name' | 'ticket' | 'amount' | 'price' | 'priceChange' | 'allPrice' | 'boughtPrice' | 'paperProfit' | 'paperProfitPercent' | 'paidDividends' | 'updateTime'>
-      & { nearestDividend?: Maybe<(
-        { __typename?: 'PaymentData' }
-        & Pick<PaymentData, 'currencyId' | 'paymentValue' | 'allPayment' | 'registryCloseDate'>
-      )> }
-    )>>> }
-  )> }
-);
-
-export type FondReportsQueryVariables = Exact<{
-  portfolioIds?: Maybe<Array<Scalars['UUID']> | Scalars['UUID']>;
-}>;
-
-
-export type FondReportsQuery = (
-  { __typename?: 'Query' }
-  & { aggregateFonds?: Maybe<(
-    { __typename?: 'DefaultPayloadOfListOfFondReport' }
-    & Pick<DefaultPayloadOfListOfFondReport, 'isSuccess' | 'message'>
-    & { result?: Maybe<Array<Maybe<(
-      { __typename?: 'FondReport' }
-      & Pick<FondReport, 'name' | 'ticket' | 'amount' | 'price' | 'priceChange' | 'allPrice' | 'boughtPrice' | 'paperProfit' | 'paperProfitPercent' | 'updateTime'>
-    )>>> }
-  )> }
-);
-
-export type BondReportsQueryVariables = Exact<{
-  portfolioIds?: Maybe<Array<Scalars['UUID']> | Scalars['UUID']>;
-}>;
-
-
-export type BondReportsQuery = (
-  { __typename?: 'Query' }
-  & { aggregateBonds?: Maybe<(
-    { __typename?: 'DefaultPayloadOfListOfBondReport' }
-    & Pick<DefaultPayloadOfListOfBondReport, 'isSuccess' | 'message'>
-    & { result?: Maybe<Array<Maybe<(
-      { __typename?: 'BondReport' }
-      & Pick<BondReport, 'name' | 'ticket' | 'amount' | 'price' | 'priceChange' | 'allPrice' | 'boughtPrice' | 'paperProfit' | 'paperProfitPercent' | 'paidPayments' | 'updateTime' | 'amortizationDate' | 'hasAmortized'>
-      & { nearestPayment?: Maybe<(
-        { __typename?: 'PaymentData' }
-        & Pick<PaymentData, 'currencyId' | 'paymentValue' | 'allPayment' | 'registryCloseDate'>
-      )> }
-    )>>> }
-  )> }
-);
-
-export type AggregateFuturePaymentsQueryVariables = Exact<{
-  portfolioIds?: Maybe<Array<Scalars['UUID']> | Scalars['UUID']>;
-}>;
-
-
-export type AggregateFuturePaymentsQuery = (
-  { __typename?: 'Query' }
-  & { aggregateFuturePayments?: Maybe<(
-    { __typename?: 'DefaultPayloadOfListOfPaymentData' }
-    & Pick<DefaultPayloadOfListOfPaymentData, 'isSuccess' | 'message'>
-    & { result?: Maybe<Array<Maybe<(
-      { __typename?: 'PaymentData' }
-      & Pick<PaymentData, 'name' | 'ticket' | 'amount' | 'allPayment' | 'paymentValue' | 'registryCloseDate' | 'currencyId'>
-    )>>> }
-  )> }
-);
-
 export type StocksQueryVariables = Exact<{ [key: string]: never; }>;
 
 
@@ -965,6 +807,66 @@ export type BondsQuery = (
   )>>> }
 );
 
+export type FuturePaymentsQueryVariables = Exact<{
+  portfolioIds?: Maybe<Array<Scalars['UUID']> | Scalars['UUID']>;
+}>;
+
+
+export type FuturePaymentsQuery = (
+  { __typename?: 'Query' }
+  & { futurePayments?: Maybe<(
+    { __typename?: 'DefaultPayloadOfListOfPaymentData' }
+    & Pick<DefaultPayloadOfListOfPaymentData, 'isSuccess' | 'message'>
+    & { result?: Maybe<Array<Maybe<(
+      { __typename?: 'PaymentData' }
+      & Pick<PaymentData, 'ticket' | 'assetName' | 'paymentValue' | 'amount' | 'total' | 'date'>
+      & { currency?: Maybe<(
+        { __typename?: 'Currency' }
+        & Pick<Currency, 'sign'>
+      )> }
+    )>>> }
+  )> }
+);
+
+export type AggregatePortfoliosQueryVariables = Exact<{
+  portfolioIds?: Maybe<Array<Scalars['UUID']> | Scalars['UUID']>;
+}>;
+
+
+export type AggregatePortfoliosQuery = (
+  { __typename?: 'Query' }
+  & { aggregatePortfolios?: Maybe<(
+    { __typename?: 'DefaultPayloadOfPortfolio' }
+    & Pick<DefaultPayloadOfPortfolio, 'isSuccess' | 'message'>
+    & { result?: Maybe<(
+      { __typename?: 'Portfolio' }
+      & Pick<Portfolio, 'cost' | 'investedSum' | 'paperProfit' | 'paperProfitPercent' | 'rubBalance' | 'dollarBalance' | 'euroBalance' | 'dividendProfit' | 'dividendProfitPercent'>
+      & { portfolioStocks?: Maybe<Array<Maybe<(
+        { __typename?: 'PortfolioStock' }
+        & Pick<PortfolioStock, 'id' | 'amount' | 'cost' | 'boughtPrice' | 'paperProfit' | 'paperProfitPercent'>
+        & { stock?: Maybe<(
+          { __typename?: 'Stock' }
+          & Pick<Stock, 'ticket' | 'shortName' | 'price' | 'priceChange' | 'updateTime'>
+        )> }
+      )>>>, portfolioFonds?: Maybe<Array<Maybe<(
+        { __typename?: 'PortfolioFond' }
+        & Pick<PortfolioFond, 'id' | 'amount' | 'cost' | 'boughtPrice' | 'paperProfit' | 'paperProfitPercent'>
+        & { fond?: Maybe<(
+          { __typename?: 'Fond' }
+          & Pick<Fond, 'ticket' | 'shortName' | 'price' | 'priceChange' | 'updateTime'>
+        )> }
+      )>>>, portfolioBonds?: Maybe<Array<Maybe<(
+        { __typename?: 'PortfolioBond' }
+        & Pick<PortfolioBond, 'id' | 'cost' | 'amount' | 'boughtPrice' | 'paperProfit' | 'paperProfitPercent'>
+        & { bond?: Maybe<(
+          { __typename?: 'Bond' }
+          & Pick<Bond, 'ticket' | 'percent' | 'percentChange' | 'price' | 'amortizationDate' | 'coupon' | 'nominal' | 'shortName' | 'updateTime'>
+        )> }
+      )>>> }
+    )> }
+  )> }
+);
+
 export type SecretQueryVariables = Exact<{ [key: string]: never; }>;
 
 
@@ -974,155 +876,6 @@ export type SecretQuery = (
 );
 
 
-export const AggregatePortfolioPaymentProfitDocument = gql`
-    query aggregatePortfolioPaymentProfit($portfolioIds: [UUID!]) {
-  aggregatePortfolioPaymentProfit(portfolioIds: $portfolioIds) {
-    isSuccess
-    message
-    result {
-      value
-      percent
-    }
-  }
-}
-    `;
-
-/**
- * __useAggregatePortfolioPaymentProfitQuery__
- *
- * To run a query within a React component, call `useAggregatePortfolioPaymentProfitQuery` and pass it any options that fit your needs.
- * When your component renders, `useAggregatePortfolioPaymentProfitQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useAggregatePortfolioPaymentProfitQuery({
- *   variables: {
- *      portfolioIds: // value for 'portfolioIds'
- *   },
- * });
- */
-export function useAggregatePortfolioPaymentProfitQuery(baseOptions?: ApolloReactHooks.QueryHookOptions<AggregatePortfolioPaymentProfitQuery, AggregatePortfolioPaymentProfitQueryVariables>) {
-        return ApolloReactHooks.useQuery<AggregatePortfolioPaymentProfitQuery, AggregatePortfolioPaymentProfitQueryVariables>(AggregatePortfolioPaymentProfitDocument, baseOptions);
-      }
-export function useAggregatePortfolioPaymentProfitLazyQuery(baseOptions?: ApolloReactHooks.LazyQueryHookOptions<AggregatePortfolioPaymentProfitQuery, AggregatePortfolioPaymentProfitQueryVariables>) {
-          return ApolloReactHooks.useLazyQuery<AggregatePortfolioPaymentProfitQuery, AggregatePortfolioPaymentProfitQueryVariables>(AggregatePortfolioPaymentProfitDocument, baseOptions);
-        }
-export type AggregatePortfolioPaymentProfitQueryHookResult = ReturnType<typeof useAggregatePortfolioPaymentProfitQuery>;
-export type AggregatePortfolioPaymentProfitLazyQueryHookResult = ReturnType<typeof useAggregatePortfolioPaymentProfitLazyQuery>;
-export type AggregatePortfolioPaymentProfitQueryResult = ApolloReactCommon.QueryResult<AggregatePortfolioPaymentProfitQuery, AggregatePortfolioPaymentProfitQueryVariables>;
-export const AggregatePortfolioPaperProfitDocument = gql`
-    query aggregatePortfolioPaperProfit($portfolioIds: [UUID!]) {
-  aggregatePortfolioPaperProfit(portfolioIds: $portfolioIds) {
-    isSuccess
-    message
-    result {
-      value
-      percent
-    }
-  }
-}
-    `;
-
-/**
- * __useAggregatePortfolioPaperProfitQuery__
- *
- * To run a query within a React component, call `useAggregatePortfolioPaperProfitQuery` and pass it any options that fit your needs.
- * When your component renders, `useAggregatePortfolioPaperProfitQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useAggregatePortfolioPaperProfitQuery({
- *   variables: {
- *      portfolioIds: // value for 'portfolioIds'
- *   },
- * });
- */
-export function useAggregatePortfolioPaperProfitQuery(baseOptions?: ApolloReactHooks.QueryHookOptions<AggregatePortfolioPaperProfitQuery, AggregatePortfolioPaperProfitQueryVariables>) {
-        return ApolloReactHooks.useQuery<AggregatePortfolioPaperProfitQuery, AggregatePortfolioPaperProfitQueryVariables>(AggregatePortfolioPaperProfitDocument, baseOptions);
-      }
-export function useAggregatePortfolioPaperProfitLazyQuery(baseOptions?: ApolloReactHooks.LazyQueryHookOptions<AggregatePortfolioPaperProfitQuery, AggregatePortfolioPaperProfitQueryVariables>) {
-          return ApolloReactHooks.useLazyQuery<AggregatePortfolioPaperProfitQuery, AggregatePortfolioPaperProfitQueryVariables>(AggregatePortfolioPaperProfitDocument, baseOptions);
-        }
-export type AggregatePortfolioPaperProfitQueryHookResult = ReturnType<typeof useAggregatePortfolioPaperProfitQuery>;
-export type AggregatePortfolioPaperProfitLazyQueryHookResult = ReturnType<typeof useAggregatePortfolioPaperProfitLazyQuery>;
-export type AggregatePortfolioPaperProfitQueryResult = ApolloReactCommon.QueryResult<AggregatePortfolioPaperProfitQuery, AggregatePortfolioPaperProfitQueryVariables>;
-export const AggregatePortfolioCostWithInvestSumDocument = gql`
-    query aggregatePortfolioCostWithInvestSum($portfolioIds: [UUID!]) {
-  aggregatePortfolioCostWithInvestSum(portfolioIds: $portfolioIds) {
-    isSuccess
-    message
-    result {
-      cost
-      investSum
-    }
-  }
-}
-    `;
-
-/**
- * __useAggregatePortfolioCostWithInvestSumQuery__
- *
- * To run a query within a React component, call `useAggregatePortfolioCostWithInvestSumQuery` and pass it any options that fit your needs.
- * When your component renders, `useAggregatePortfolioCostWithInvestSumQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useAggregatePortfolioCostWithInvestSumQuery({
- *   variables: {
- *      portfolioIds: // value for 'portfolioIds'
- *   },
- * });
- */
-export function useAggregatePortfolioCostWithInvestSumQuery(baseOptions?: ApolloReactHooks.QueryHookOptions<AggregatePortfolioCostWithInvestSumQuery, AggregatePortfolioCostWithInvestSumQueryVariables>) {
-        return ApolloReactHooks.useQuery<AggregatePortfolioCostWithInvestSumQuery, AggregatePortfolioCostWithInvestSumQueryVariables>(AggregatePortfolioCostWithInvestSumDocument, baseOptions);
-      }
-export function useAggregatePortfolioCostWithInvestSumLazyQuery(baseOptions?: ApolloReactHooks.LazyQueryHookOptions<AggregatePortfolioCostWithInvestSumQuery, AggregatePortfolioCostWithInvestSumQueryVariables>) {
-          return ApolloReactHooks.useLazyQuery<AggregatePortfolioCostWithInvestSumQuery, AggregatePortfolioCostWithInvestSumQueryVariables>(AggregatePortfolioCostWithInvestSumDocument, baseOptions);
-        }
-export type AggregatePortfolioCostWithInvestSumQueryHookResult = ReturnType<typeof useAggregatePortfolioCostWithInvestSumQuery>;
-export type AggregatePortfolioCostWithInvestSumLazyQueryHookResult = ReturnType<typeof useAggregatePortfolioCostWithInvestSumLazyQuery>;
-export type AggregatePortfolioCostWithInvestSumQueryResult = ApolloReactCommon.QueryResult<AggregatePortfolioCostWithInvestSumQuery, AggregatePortfolioCostWithInvestSumQueryVariables>;
-export const AggregateBalanceDocument = gql`
-    query aggregateBalance($portfolioIds: [UUID!]) {
-  aggregateBalance(portfolioIds: $portfolioIds) {
-    isSuccess
-    message
-    result
-  }
-}
-    `;
-
-/**
- * __useAggregateBalanceQuery__
- *
- * To run a query within a React component, call `useAggregateBalanceQuery` and pass it any options that fit your needs.
- * When your component renders, `useAggregateBalanceQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useAggregateBalanceQuery({
- *   variables: {
- *      portfolioIds: // value for 'portfolioIds'
- *   },
- * });
- */
-export function useAggregateBalanceQuery(baseOptions?: ApolloReactHooks.QueryHookOptions<AggregateBalanceQuery, AggregateBalanceQueryVariables>) {
-        return ApolloReactHooks.useQuery<AggregateBalanceQuery, AggregateBalanceQueryVariables>(AggregateBalanceDocument, baseOptions);
-      }
-export function useAggregateBalanceLazyQuery(baseOptions?: ApolloReactHooks.LazyQueryHookOptions<AggregateBalanceQuery, AggregateBalanceQueryVariables>) {
-          return ApolloReactHooks.useLazyQuery<AggregateBalanceQuery, AggregateBalanceQueryVariables>(AggregateBalanceDocument, baseOptions);
-        }
-export type AggregateBalanceQueryHookResult = ReturnType<typeof useAggregateBalanceQuery>;
-export type AggregateBalanceLazyQueryHookResult = ReturnType<typeof useAggregateBalanceLazyQuery>;
-export type AggregateBalanceQueryResult = ApolloReactCommon.QueryResult<AggregateBalanceQuery, AggregateBalanceQueryVariables>;
 export const AggregatePortfolioCostGraphDocument = gql`
     query aggregatePortfolioCostGraph($portfolioIds: [UUID!]) {
   aggregatePortfolioCostGraph(portfolioIds: $portfolioIds) {
@@ -1337,6 +1090,157 @@ export function useGetCurrenciesLazyQuery(baseOptions?: ApolloReactHooks.LazyQue
 export type GetCurrenciesQueryHookResult = ReturnType<typeof useGetCurrenciesQuery>;
 export type GetCurrenciesLazyQueryHookResult = ReturnType<typeof useGetCurrenciesLazyQuery>;
 export type GetCurrenciesQueryResult = ApolloReactCommon.QueryResult<GetCurrenciesQuery, GetCurrenciesQueryVariables>;
+export const ParseAssetReportDocument = gql`
+    query parseAssetReport($report: Upload!) {
+  parseAssetReport(report: $report) {
+    ticket
+    assetType
+    assetAction
+    amount
+    price
+    total
+    currency {
+      id
+      sign
+    }
+    date
+  }
+}
+    `;
+
+/**
+ * __useParseAssetReportQuery__
+ *
+ * To run a query within a React component, call `useParseAssetReportQuery` and pass it any options that fit your needs.
+ * When your component renders, `useParseAssetReportQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useParseAssetReportQuery({
+ *   variables: {
+ *      report: // value for 'report'
+ *   },
+ * });
+ */
+export function useParseAssetReportQuery(baseOptions?: ApolloReactHooks.QueryHookOptions<ParseAssetReportQuery, ParseAssetReportQueryVariables>) {
+        return ApolloReactHooks.useQuery<ParseAssetReportQuery, ParseAssetReportQueryVariables>(ParseAssetReportDocument, baseOptions);
+      }
+export function useParseAssetReportLazyQuery(baseOptions?: ApolloReactHooks.LazyQueryHookOptions<ParseAssetReportQuery, ParseAssetReportQueryVariables>) {
+          return ApolloReactHooks.useLazyQuery<ParseAssetReportQuery, ParseAssetReportQueryVariables>(ParseAssetReportDocument, baseOptions);
+        }
+export type ParseAssetReportQueryHookResult = ReturnType<typeof useParseAssetReportQuery>;
+export type ParseAssetReportLazyQueryHookResult = ReturnType<typeof useParseAssetReportLazyQuery>;
+export type ParseAssetReportQueryResult = ApolloReactCommon.QueryResult<ParseAssetReportQuery, ParseAssetReportQueryVariables>;
+export const ParseCurrencyReportDocument = gql`
+    query parseCurrencyReport($report: Upload) {
+  parseCurrencyReport(report: $report) {
+    ticket
+    currency {
+      id
+      sign
+    }
+    total
+    amount
+    operationType
+    date
+    total
+  }
+}
+    `;
+
+/**
+ * __useParseCurrencyReportQuery__
+ *
+ * To run a query within a React component, call `useParseCurrencyReportQuery` and pass it any options that fit your needs.
+ * When your component renders, `useParseCurrencyReportQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useParseCurrencyReportQuery({
+ *   variables: {
+ *      report: // value for 'report'
+ *   },
+ * });
+ */
+export function useParseCurrencyReportQuery(baseOptions?: ApolloReactHooks.QueryHookOptions<ParseCurrencyReportQuery, ParseCurrencyReportQueryVariables>) {
+        return ApolloReactHooks.useQuery<ParseCurrencyReportQuery, ParseCurrencyReportQueryVariables>(ParseCurrencyReportDocument, baseOptions);
+      }
+export function useParseCurrencyReportLazyQuery(baseOptions?: ApolloReactHooks.LazyQueryHookOptions<ParseCurrencyReportQuery, ParseCurrencyReportQueryVariables>) {
+          return ApolloReactHooks.useLazyQuery<ParseCurrencyReportQuery, ParseCurrencyReportQueryVariables>(ParseCurrencyReportDocument, baseOptions);
+        }
+export type ParseCurrencyReportQueryHookResult = ReturnType<typeof useParseCurrencyReportQuery>;
+export type ParseCurrencyReportLazyQueryHookResult = ReturnType<typeof useParseCurrencyReportLazyQuery>;
+export type ParseCurrencyReportQueryResult = ApolloReactCommon.QueryResult<ParseCurrencyReportQuery, ParseCurrencyReportQueryVariables>;
+export const CreateAssetOperationsDocument = gql`
+    mutation createAssetOperations($assetOperations: [AssetOperationInput]) {
+  createAssetOperations(assetOperations: $assetOperations) {
+    isSuccess
+    message
+  }
+}
+    `;
+export type CreateAssetOperationsMutationFn = ApolloReactCommon.MutationFunction<CreateAssetOperationsMutation, CreateAssetOperationsMutationVariables>;
+
+/**
+ * __useCreateAssetOperationsMutation__
+ *
+ * To run a mutation, you first call `useCreateAssetOperationsMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCreateAssetOperationsMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [createAssetOperationsMutation, { data, loading, error }] = useCreateAssetOperationsMutation({
+ *   variables: {
+ *      assetOperations: // value for 'assetOperations'
+ *   },
+ * });
+ */
+export function useCreateAssetOperationsMutation(baseOptions?: ApolloReactHooks.MutationHookOptions<CreateAssetOperationsMutation, CreateAssetOperationsMutationVariables>) {
+        return ApolloReactHooks.useMutation<CreateAssetOperationsMutation, CreateAssetOperationsMutationVariables>(CreateAssetOperationsDocument, baseOptions);
+      }
+export type CreateAssetOperationsMutationHookResult = ReturnType<typeof useCreateAssetOperationsMutation>;
+export type CreateAssetOperationsMutationResult = ApolloReactCommon.MutationResult<CreateAssetOperationsMutation>;
+export type CreateAssetOperationsMutationOptions = ApolloReactCommon.BaseMutationOptions<CreateAssetOperationsMutation, CreateAssetOperationsMutationVariables>;
+export const CreateCurrencyOperationsDocument = gql`
+    mutation createCurrencyOperations($currencyOperations: [CurrencyOperationInput]) {
+  createCurrencyOperations(currencyOperations: $currencyOperations) {
+    isSuccess
+    message
+  }
+}
+    `;
+export type CreateCurrencyOperationsMutationFn = ApolloReactCommon.MutationFunction<CreateCurrencyOperationsMutation, CreateCurrencyOperationsMutationVariables>;
+
+/**
+ * __useCreateCurrencyOperationsMutation__
+ *
+ * To run a mutation, you first call `useCreateCurrencyOperationsMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCreateCurrencyOperationsMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [createCurrencyOperationsMutation, { data, loading, error }] = useCreateCurrencyOperationsMutation({
+ *   variables: {
+ *      currencyOperations: // value for 'currencyOperations'
+ *   },
+ * });
+ */
+export function useCreateCurrencyOperationsMutation(baseOptions?: ApolloReactHooks.MutationHookOptions<CreateCurrencyOperationsMutation, CreateCurrencyOperationsMutationVariables>) {
+        return ApolloReactHooks.useMutation<CreateCurrencyOperationsMutation, CreateCurrencyOperationsMutationVariables>(CreateCurrencyOperationsDocument, baseOptions);
+      }
+export type CreateCurrencyOperationsMutationHookResult = ReturnType<typeof useCreateCurrencyOperationsMutation>;
+export type CreateCurrencyOperationsMutationResult = ApolloReactCommon.MutationResult<CreateCurrencyOperationsMutation>;
+export type CreateCurrencyOperationsMutationOptions = ApolloReactCommon.BaseMutationOptions<CreateCurrencyOperationsMutation, CreateCurrencyOperationsMutationVariables>;
 export const PortfoliosDocument = gql`
     query portfolios {
   portfolios {
@@ -1467,6 +1371,7 @@ export const GetAssetOperationsDocument = gql`
       ticket
       amount
       price
+      total
       currency {
         name
         sign
@@ -1630,203 +1535,6 @@ export function useRemoveCurrencyOperationMutation(baseOptions?: ApolloReactHook
 export type RemoveCurrencyOperationMutationHookResult = ReturnType<typeof useRemoveCurrencyOperationMutation>;
 export type RemoveCurrencyOperationMutationResult = ApolloReactCommon.MutationResult<RemoveCurrencyOperationMutation>;
 export type RemoveCurrencyOperationMutationOptions = ApolloReactCommon.BaseMutationOptions<RemoveCurrencyOperationMutation, RemoveCurrencyOperationMutationVariables>;
-export const StockReportsDocument = gql`
-    query stockReports($portfolioIds: [UUID!]) {
-  aggregateStocks(portfolioIds: $portfolioIds) {
-    isSuccess
-    message
-    result {
-      name
-      ticket
-      amount
-      price
-      priceChange
-      allPrice
-      boughtPrice
-      paperProfit
-      paperProfitPercent
-      nearestDividend {
-        currencyId
-        paymentValue
-        allPayment
-        registryCloseDate
-      }
-      paidDividends
-      updateTime
-    }
-  }
-}
-    `;
-
-/**
- * __useStockReportsQuery__
- *
- * To run a query within a React component, call `useStockReportsQuery` and pass it any options that fit your needs.
- * When your component renders, `useStockReportsQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useStockReportsQuery({
- *   variables: {
- *      portfolioIds: // value for 'portfolioIds'
- *   },
- * });
- */
-export function useStockReportsQuery(baseOptions?: ApolloReactHooks.QueryHookOptions<StockReportsQuery, StockReportsQueryVariables>) {
-        return ApolloReactHooks.useQuery<StockReportsQuery, StockReportsQueryVariables>(StockReportsDocument, baseOptions);
-      }
-export function useStockReportsLazyQuery(baseOptions?: ApolloReactHooks.LazyQueryHookOptions<StockReportsQuery, StockReportsQueryVariables>) {
-          return ApolloReactHooks.useLazyQuery<StockReportsQuery, StockReportsQueryVariables>(StockReportsDocument, baseOptions);
-        }
-export type StockReportsQueryHookResult = ReturnType<typeof useStockReportsQuery>;
-export type StockReportsLazyQueryHookResult = ReturnType<typeof useStockReportsLazyQuery>;
-export type StockReportsQueryResult = ApolloReactCommon.QueryResult<StockReportsQuery, StockReportsQueryVariables>;
-export const FondReportsDocument = gql`
-    query fondReports($portfolioIds: [UUID!]) {
-  aggregateFonds(portfolioIds: $portfolioIds) {
-    isSuccess
-    message
-    result {
-      name
-      ticket
-      amount
-      price
-      priceChange
-      allPrice
-      boughtPrice
-      paperProfit
-      paperProfitPercent
-      updateTime
-    }
-  }
-}
-    `;
-
-/**
- * __useFondReportsQuery__
- *
- * To run a query within a React component, call `useFondReportsQuery` and pass it any options that fit your needs.
- * When your component renders, `useFondReportsQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useFondReportsQuery({
- *   variables: {
- *      portfolioIds: // value for 'portfolioIds'
- *   },
- * });
- */
-export function useFondReportsQuery(baseOptions?: ApolloReactHooks.QueryHookOptions<FondReportsQuery, FondReportsQueryVariables>) {
-        return ApolloReactHooks.useQuery<FondReportsQuery, FondReportsQueryVariables>(FondReportsDocument, baseOptions);
-      }
-export function useFondReportsLazyQuery(baseOptions?: ApolloReactHooks.LazyQueryHookOptions<FondReportsQuery, FondReportsQueryVariables>) {
-          return ApolloReactHooks.useLazyQuery<FondReportsQuery, FondReportsQueryVariables>(FondReportsDocument, baseOptions);
-        }
-export type FondReportsQueryHookResult = ReturnType<typeof useFondReportsQuery>;
-export type FondReportsLazyQueryHookResult = ReturnType<typeof useFondReportsLazyQuery>;
-export type FondReportsQueryResult = ApolloReactCommon.QueryResult<FondReportsQuery, FondReportsQueryVariables>;
-export const BondReportsDocument = gql`
-    query bondReports($portfolioIds: [UUID!]) {
-  aggregateBonds(portfolioIds: $portfolioIds) {
-    isSuccess
-    message
-    result {
-      name
-      ticket
-      amount
-      price
-      priceChange
-      allPrice
-      boughtPrice
-      paperProfit
-      paperProfitPercent
-      nearestPayment {
-        currencyId
-        paymentValue
-        allPayment
-        registryCloseDate
-      }
-      paidPayments
-      updateTime
-      amortizationDate
-      hasAmortized
-    }
-  }
-}
-    `;
-
-/**
- * __useBondReportsQuery__
- *
- * To run a query within a React component, call `useBondReportsQuery` and pass it any options that fit your needs.
- * When your component renders, `useBondReportsQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useBondReportsQuery({
- *   variables: {
- *      portfolioIds: // value for 'portfolioIds'
- *   },
- * });
- */
-export function useBondReportsQuery(baseOptions?: ApolloReactHooks.QueryHookOptions<BondReportsQuery, BondReportsQueryVariables>) {
-        return ApolloReactHooks.useQuery<BondReportsQuery, BondReportsQueryVariables>(BondReportsDocument, baseOptions);
-      }
-export function useBondReportsLazyQuery(baseOptions?: ApolloReactHooks.LazyQueryHookOptions<BondReportsQuery, BondReportsQueryVariables>) {
-          return ApolloReactHooks.useLazyQuery<BondReportsQuery, BondReportsQueryVariables>(BondReportsDocument, baseOptions);
-        }
-export type BondReportsQueryHookResult = ReturnType<typeof useBondReportsQuery>;
-export type BondReportsLazyQueryHookResult = ReturnType<typeof useBondReportsLazyQuery>;
-export type BondReportsQueryResult = ApolloReactCommon.QueryResult<BondReportsQuery, BondReportsQueryVariables>;
-export const AggregateFuturePaymentsDocument = gql`
-    query aggregateFuturePayments($portfolioIds: [UUID!]) {
-  aggregateFuturePayments(portfolioIds: $portfolioIds) {
-    isSuccess
-    message
-    result {
-      name
-      ticket
-      amount
-      allPayment
-      paymentValue
-      registryCloseDate
-      currencyId
-    }
-  }
-}
-    `;
-
-/**
- * __useAggregateFuturePaymentsQuery__
- *
- * To run a query within a React component, call `useAggregateFuturePaymentsQuery` and pass it any options that fit your needs.
- * When your component renders, `useAggregateFuturePaymentsQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useAggregateFuturePaymentsQuery({
- *   variables: {
- *      portfolioIds: // value for 'portfolioIds'
- *   },
- * });
- */
-export function useAggregateFuturePaymentsQuery(baseOptions?: ApolloReactHooks.QueryHookOptions<AggregateFuturePaymentsQuery, AggregateFuturePaymentsQueryVariables>) {
-        return ApolloReactHooks.useQuery<AggregateFuturePaymentsQuery, AggregateFuturePaymentsQueryVariables>(AggregateFuturePaymentsDocument, baseOptions);
-      }
-export function useAggregateFuturePaymentsLazyQuery(baseOptions?: ApolloReactHooks.LazyQueryHookOptions<AggregateFuturePaymentsQuery, AggregateFuturePaymentsQueryVariables>) {
-          return ApolloReactHooks.useLazyQuery<AggregateFuturePaymentsQuery, AggregateFuturePaymentsQueryVariables>(AggregateFuturePaymentsDocument, baseOptions);
-        }
-export type AggregateFuturePaymentsQueryHookResult = ReturnType<typeof useAggregateFuturePaymentsQuery>;
-export type AggregateFuturePaymentsLazyQueryHookResult = ReturnType<typeof useAggregateFuturePaymentsLazyQuery>;
-export type AggregateFuturePaymentsQueryResult = ApolloReactCommon.QueryResult<AggregateFuturePaymentsQuery, AggregateFuturePaymentsQueryVariables>;
 export const StocksDocument = gql`
     query stocks {
   stocks {
@@ -1945,6 +1653,145 @@ export function useBondsLazyQuery(baseOptions?: ApolloReactHooks.LazyQueryHookOp
 export type BondsQueryHookResult = ReturnType<typeof useBondsQuery>;
 export type BondsLazyQueryHookResult = ReturnType<typeof useBondsLazyQuery>;
 export type BondsQueryResult = ApolloReactCommon.QueryResult<BondsQuery, BondsQueryVariables>;
+export const FuturePaymentsDocument = gql`
+    query futurePayments($portfolioIds: [UUID!]) {
+  futurePayments(portfolioIds: $portfolioIds) {
+    isSuccess
+    message
+    result {
+      ticket
+      assetName
+      paymentValue
+      amount
+      total
+      date
+      currency {
+        sign
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useFuturePaymentsQuery__
+ *
+ * To run a query within a React component, call `useFuturePaymentsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useFuturePaymentsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useFuturePaymentsQuery({
+ *   variables: {
+ *      portfolioIds: // value for 'portfolioIds'
+ *   },
+ * });
+ */
+export function useFuturePaymentsQuery(baseOptions?: ApolloReactHooks.QueryHookOptions<FuturePaymentsQuery, FuturePaymentsQueryVariables>) {
+        return ApolloReactHooks.useQuery<FuturePaymentsQuery, FuturePaymentsQueryVariables>(FuturePaymentsDocument, baseOptions);
+      }
+export function useFuturePaymentsLazyQuery(baseOptions?: ApolloReactHooks.LazyQueryHookOptions<FuturePaymentsQuery, FuturePaymentsQueryVariables>) {
+          return ApolloReactHooks.useLazyQuery<FuturePaymentsQuery, FuturePaymentsQueryVariables>(FuturePaymentsDocument, baseOptions);
+        }
+export type FuturePaymentsQueryHookResult = ReturnType<typeof useFuturePaymentsQuery>;
+export type FuturePaymentsLazyQueryHookResult = ReturnType<typeof useFuturePaymentsLazyQuery>;
+export type FuturePaymentsQueryResult = ApolloReactCommon.QueryResult<FuturePaymentsQuery, FuturePaymentsQueryVariables>;
+export const AggregatePortfoliosDocument = gql`
+    query aggregatePortfolios($portfolioIds: [UUID!]) {
+  aggregatePortfolios(portfolioIds: $portfolioIds) {
+    isSuccess
+    message
+    result {
+      cost
+      investedSum
+      paperProfit
+      paperProfitPercent
+      rubBalance
+      dollarBalance
+      euroBalance
+      dividendProfit
+      dividendProfitPercent
+      portfolioStocks {
+        stock {
+          ticket
+          shortName
+          price
+          priceChange
+          updateTime
+        }
+        id
+        amount
+        cost
+        boughtPrice
+        paperProfit
+        paperProfitPercent
+      }
+      portfolioFonds {
+        fond {
+          ticket
+          shortName
+          price
+          priceChange
+          updateTime
+        }
+        id
+        amount
+        cost
+        boughtPrice
+        paperProfit
+        paperProfitPercent
+      }
+      portfolioBonds {
+        bond {
+          ticket
+          percent
+          percentChange
+          price
+          amortizationDate
+          coupon
+          nominal
+          shortName
+          updateTime
+        }
+        id
+        cost
+        amount
+        boughtPrice
+        paperProfit
+        paperProfitPercent
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useAggregatePortfoliosQuery__
+ *
+ * To run a query within a React component, call `useAggregatePortfoliosQuery` and pass it any options that fit your needs.
+ * When your component renders, `useAggregatePortfoliosQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useAggregatePortfoliosQuery({
+ *   variables: {
+ *      portfolioIds: // value for 'portfolioIds'
+ *   },
+ * });
+ */
+export function useAggregatePortfoliosQuery(baseOptions?: ApolloReactHooks.QueryHookOptions<AggregatePortfoliosQuery, AggregatePortfoliosQueryVariables>) {
+        return ApolloReactHooks.useQuery<AggregatePortfoliosQuery, AggregatePortfoliosQueryVariables>(AggregatePortfoliosDocument, baseOptions);
+      }
+export function useAggregatePortfoliosLazyQuery(baseOptions?: ApolloReactHooks.LazyQueryHookOptions<AggregatePortfoliosQuery, AggregatePortfoliosQueryVariables>) {
+          return ApolloReactHooks.useLazyQuery<AggregatePortfoliosQuery, AggregatePortfoliosQueryVariables>(AggregatePortfoliosDocument, baseOptions);
+        }
+export type AggregatePortfoliosQueryHookResult = ReturnType<typeof useAggregatePortfoliosQuery>;
+export type AggregatePortfoliosLazyQueryHookResult = ReturnType<typeof useAggregatePortfoliosLazyQuery>;
+export type AggregatePortfoliosQueryResult = ApolloReactCommon.QueryResult<AggregatePortfoliosQuery, AggregatePortfoliosQueryVariables>;
 export const SecretDocument = gql`
     query Secret {
   secretData

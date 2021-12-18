@@ -7,7 +7,6 @@ import {
     AuditOutlined,
     BankOutlined,
     PoweroffOutlined,
-    UserOutlined,
 } from "@ant-design/icons"
 import { useLocation } from "react-router-dom"
 import useStore from "store/useStore"
@@ -97,13 +96,13 @@ const Sidebar: React.FC = () => {
                     </NavItem>
                 </ItemsWrapper>
                 <ItemsWrapper>
-                    <NavItem
+                    {/* <NavItem
                         link="/profile"
                         icon={<UserOutlined />}
                         active={location.pathname === "/profile"}
                     >
                         Профиль
-                    </NavItem>
+                    </NavItem> */}
                     <NavItem
                         link="/"
                         onClick={authService.signout}
