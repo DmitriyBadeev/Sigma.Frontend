@@ -1,4 +1,4 @@
-import React, { useEffect } from "react"
+import React from "react"
 import { Col, message } from "antd"
 import Card from "components/cards/Card"
 import Highcharts from "highcharts/highstock"

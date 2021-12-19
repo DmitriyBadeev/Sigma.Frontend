@@ -33,7 +33,7 @@ const Operations: React.FC = () => {
             setSelectedPortfolio(portfolios[0]?.id)
             setSelectInit(true)
         }
-    }, [portfolios])
+    }, [portfolios, selectInit])
 
     if (error) message.error(error.message)
     if (loading) return <Loading size="big" height="70vh"/>

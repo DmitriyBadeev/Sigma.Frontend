@@ -87,3 +87,14 @@ query aggregatePortfolios($portfolioIds: [UUID!]) {
     }
   }
 }
+
+query herfindahlHirschmanIndex($portfolioIds: [UUID!]) {
+  herfindahlHirschmanIndex(portfolioIds: $portfolioIds) {
+    isSuccess
+    message
+    result {
+      value
+      interpretation
+    }
+  }
+}

@@ -31,10 +31,9 @@ const Portfolios: React.FC = observer(() => {
 
     useEffect(() => {
         query({ variables: { portfolioIds: selectedPortfolioIds } })
-    }, [portfolioStore.activePortfolioIds])
+    }, [selectedPortfolioIds, query])
 
     const portfolio = data?.aggregatePortfolios?.result
-    console.log(portfolio);
     
     if (error) message.error(error.message)
     

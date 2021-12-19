@@ -48,7 +48,7 @@ const CreatePortfolioDrawer: React.FC = observer(() => {
         if (Portfolios.length > 0) {
             portfolioStore.updatePortfolios(portfolios)
         }
-    }, [portfoliosPayload])
+    }, [portfoliosPayload, portfolioStore])
 
     const showDrawer = () => {
         setVisible(true)

@@ -19,7 +19,7 @@ query Sparkline(
     $interval: CandleInterval!
 ) {
     stockCandles(ticket: $ticket, from: $from, interval: $interval) {
-        date
+        begin
         close
     }
 }
@@ -30,8 +30,20 @@ query StockGraph(
     $interval: CandleInterval!
 ) {
     stockCandles(ticket: $ticket, from: $from, interval: $interval) {
-        date
+        begin
         close
         volume
     }
+}
+
+query portfolioAssetShares($portfolioIds: [UUID!]) {
+  portfolioAssetShares(portfolioIds: $portfolioIds) {
+    isSuccess
+    message
+    result {
+      ticket
+      name
+      percent
+    }
+  }
 }

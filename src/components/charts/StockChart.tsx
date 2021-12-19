@@ -68,9 +68,9 @@ const StockChart: React.FC<propTypes> = (props) => {
 
     if (loading) return <Loading size={"small"} height="40px" />
 
-    const lineData = data?.stockCandles?.map((d) => [d?.date, d?.close]) || []
+    const lineData = data?.stockCandles?.map((d) => [d?.begin, d?.close]) || []
     const volumeData =
-        data?.stockCandles?.map((d) => [d?.date, d?.volume]) || []
+        data?.stockCandles?.map((d) => [d?.begin, d?.volume]) || []
 
     const preparedData = {
         name: props.ticket,

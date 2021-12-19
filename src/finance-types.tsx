@@ -44,12 +44,14 @@ export type Query = {
   currencyOperations?: Maybe<DefaultPayloadOfListOfCurrencyOperation>;
   currencyOperationTypes?: Maybe<Array<Maybe<Scalars['String']>>>;
   aggregatePortfolios?: Maybe<DefaultPayloadOfPortfolio>;
-  stockCandles?: Maybe<Array<Maybe<StockCandle>>>;
+  stockCandles?: Maybe<Array<Maybe<Candle>>>;
   portfoliosCostGraph?: Maybe<DefaultPayloadOfListOfCostGraphData>;
   secretData?: Maybe<Scalars['String']>;
   parseAssetReport?: Maybe<Array<Maybe<AssetOperation>>>;
   parseCurrencyReport?: Maybe<Array<Maybe<CurrencyOperation>>>;
   futurePayments?: Maybe<DefaultPayloadOfListOfPaymentData>;
+  portfolioAssetShares?: Maybe<DefaultPayloadOfListOfAssetShare>;
+  herfindahlHirschmanIndex?: Maybe<DefaultPayloadOfHerfindahlHirschmanIndex>;
 };
 
 
@@ -91,6 +93,16 @@ export type QueryParseCurrencyReportArgs = {
 
 
 export type QueryFuturePaymentsArgs = {
+  portfolioIds?: Maybe<Array<Scalars['UUID']>>;
+};
+
+
+export type QueryPortfolioAssetSharesArgs = {
+  portfolioIds?: Maybe<Array<Scalars['UUID']>>;
+};
+
+
+export type QueryHerfindahlHirschmanIndexArgs = {
   portfolioIds?: Maybe<Array<Scalars['UUID']>>;
 };
 
@@ -275,15 +287,16 @@ export type DefaultPayloadOfPortfolio = {
   result?: Maybe<Portfolio>;
 };
 
-export type StockCandle = {
-  __typename?: 'StockCandle';
-  open: Scalars['Float'];
-  close: Scalars['Float'];
-  high: Scalars['Float'];
-  low: Scalars['Float'];
-  value: Scalars['Float'];
-  volume: Scalars['Float'];
-  date: Scalars['Long'];
+export type Candle = {
+  __typename?: 'Candle';
+  open: Scalars['Decimal'];
+  close: Scalars['Decimal'];
+  high: Scalars['Decimal'];
+  low: Scalars['Decimal'];
+  value: Scalars['Decimal'];
+  volume: Scalars['Decimal'];
+  begin: Scalars['DateTime'];
+  end: Scalars['DateTime'];
 };
 
 
@@ -336,6 +349,20 @@ export type DefaultPayloadOfListOfPaymentData = {
   isSuccess: Scalars['Boolean'];
   message?: Maybe<Scalars['String']>;
   result?: Maybe<Array<Maybe<PaymentData>>>;
+};
+
+export type DefaultPayloadOfListOfAssetShare = {
+  __typename?: 'DefaultPayloadOfListOfAssetShare';
+  isSuccess: Scalars['Boolean'];
+  message?: Maybe<Scalars['String']>;
+  result?: Maybe<Array<Maybe<AssetShare>>>;
+};
+
+export type DefaultPayloadOfHerfindahlHirschmanIndex = {
+  __typename?: 'DefaultPayloadOfHerfindahlHirschmanIndex';
+  isSuccess: Scalars['Boolean'];
+  message?: Maybe<Scalars['String']>;
+  result?: Maybe<HerfindahlHirschmanIndex>;
 };
 
 export type DefaultPayload = {
@@ -399,6 +426,19 @@ export enum AssetType {
   Bond = 'BOND'
 }
 
+
+export type HerfindahlHirschmanIndex = {
+  __typename?: 'HerfindahlHirschmanIndex';
+  value: Scalars['Decimal'];
+  interpretation: HerfindahlHirschmanIndexInterpretation;
+};
+
+export type AssetShare = {
+  __typename?: 'AssetShare';
+  ticket?: Maybe<Scalars['String']>;
+  name?: Maybe<Scalars['String']>;
+  percent: Scalars['Decimal'];
+};
 
 export type PaymentData = {
   __typename?: 'PaymentData';
@@ -507,6 +547,14 @@ export type TimeValue = {
   value: Scalars['Decimal'];
 };
 
+export enum HerfindahlHirschmanIndexInterpretation {
+  Excellent = 'EXCELLENT',
+  Good = 'GOOD',
+  Normal = 'NORMAL',
+  Bad = 'BAD',
+  Terrible = 'TERRIBLE'
+}
+
 export type PortfoliosCostGraphQueryVariables = Exact<{
   portfolioIds?: Maybe<Array<Scalars['UUID']> | Scalars['UUID']>;
 }>;
@@ -538,8 +586,8 @@ export type SparklineQueryVariables = Exact<{
 export type SparklineQuery = (
   { __typename?: 'Query' }
   & { stockCandles?: Maybe<Array<Maybe<(
-    { __typename?: 'StockCandle' }
-    & Pick<StockCandle, 'date' | 'close'>
+    { __typename?: 'Candle' }
+    & Pick<Candle, 'begin' | 'close'>
   )>>> }
 );
 
@@ -553,9 +601,26 @@ export type StockGraphQueryVariables = Exact<{
 export type StockGraphQuery = (
   { __typename?: 'Query' }
   & { stockCandles?: Maybe<Array<Maybe<(
-    { __typename?: 'StockCandle' }
-    & Pick<StockCandle, 'date' | 'close' | 'volume'>
+    { __typename?: 'Candle' }
+    & Pick<Candle, 'begin' | 'close' | 'volume'>
   )>>> }
+);
+
+export type PortfolioAssetSharesQueryVariables = Exact<{
+  portfolioIds?: Maybe<Array<Scalars['UUID']> | Scalars['UUID']>;
+}>;
+
+
+export type PortfolioAssetSharesQuery = (
+  { __typename?: 'Query' }
+  & { portfolioAssetShares?: Maybe<(
+    { __typename?: 'DefaultPayloadOfListOfAssetShare' }
+    & Pick<DefaultPayloadOfListOfAssetShare, 'isSuccess' | 'message'>
+    & { result?: Maybe<Array<Maybe<(
+      { __typename?: 'AssetShare' }
+      & Pick<AssetShare, 'ticket' | 'name' | 'percent'>
+    )>>> }
+  )> }
 );
 
 export type PortfolioTypesQueryVariables = Exact<{ [key: string]: never; }>;
@@ -883,6 +948,23 @@ export type AggregatePortfoliosQuery = (
   )> }
 );
 
+export type HerfindahlHirschmanIndexQueryVariables = Exact<{
+  portfolioIds?: Maybe<Array<Scalars['UUID']> | Scalars['UUID']>;
+}>;
+
+
+export type HerfindahlHirschmanIndexQuery = (
+  { __typename?: 'Query' }
+  & { herfindahlHirschmanIndex?: Maybe<(
+    { __typename?: 'DefaultPayloadOfHerfindahlHirschmanIndex' }
+    & Pick<DefaultPayloadOfHerfindahlHirschmanIndex, 'isSuccess' | 'message'>
+    & { result?: Maybe<(
+      { __typename?: 'HerfindahlHirschmanIndex' }
+      & Pick<HerfindahlHirschmanIndex, 'value' | 'interpretation'>
+    )> }
+  )> }
+);
+
 export type SecretQueryVariables = Exact<{ [key: string]: never; }>;
 
 
@@ -937,7 +1019,7 @@ export type PortfoliosCostGraphQueryResult = ApolloReactCommon.QueryResult<Portf
 export const SparklineDocument = gql`
     query Sparkline($ticket: String!, $from: DateTime!, $interval: CandleInterval!) {
   stockCandles(ticket: $ticket, from: $from, interval: $interval) {
-    date
+    begin
     close
   }
 }
@@ -973,7 +1055,7 @@ export type SparklineQueryResult = ApolloReactCommon.QueryResult<SparklineQuery,
 export const StockGraphDocument = gql`
     query StockGraph($ticket: String!, $from: DateTime!, $interval: CandleInterval!) {
   stockCandles(ticket: $ticket, from: $from, interval: $interval) {
-    date
+    begin
     close
     volume
   }
@@ -1007,6 +1089,45 @@ export function useStockGraphLazyQuery(baseOptions?: ApolloReactHooks.LazyQueryH
 export type StockGraphQueryHookResult = ReturnType<typeof useStockGraphQuery>;
 export type StockGraphLazyQueryHookResult = ReturnType<typeof useStockGraphLazyQuery>;
 export type StockGraphQueryResult = ApolloReactCommon.QueryResult<StockGraphQuery, StockGraphQueryVariables>;
+export const PortfolioAssetSharesDocument = gql`
+    query portfolioAssetShares($portfolioIds: [UUID!]) {
+  portfolioAssetShares(portfolioIds: $portfolioIds) {
+    isSuccess
+    message
+    result {
+      ticket
+      name
+      percent
+    }
+  }
+}
+    `;
+
+/**
+ * __usePortfolioAssetSharesQuery__
+ *
+ * To run a query within a React component, call `usePortfolioAssetSharesQuery` and pass it any options that fit your needs.
+ * When your component renders, `usePortfolioAssetSharesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = usePortfolioAssetSharesQuery({
+ *   variables: {
+ *      portfolioIds: // value for 'portfolioIds'
+ *   },
+ * });
+ */
+export function usePortfolioAssetSharesQuery(baseOptions?: ApolloReactHooks.QueryHookOptions<PortfolioAssetSharesQuery, PortfolioAssetSharesQueryVariables>) {
+        return ApolloReactHooks.useQuery<PortfolioAssetSharesQuery, PortfolioAssetSharesQueryVariables>(PortfolioAssetSharesDocument, baseOptions);
+      }
+export function usePortfolioAssetSharesLazyQuery(baseOptions?: ApolloReactHooks.LazyQueryHookOptions<PortfolioAssetSharesQuery, PortfolioAssetSharesQueryVariables>) {
+          return ApolloReactHooks.useLazyQuery<PortfolioAssetSharesQuery, PortfolioAssetSharesQueryVariables>(PortfolioAssetSharesDocument, baseOptions);
+        }
+export type PortfolioAssetSharesQueryHookResult = ReturnType<typeof usePortfolioAssetSharesQuery>;
+export type PortfolioAssetSharesLazyQueryHookResult = ReturnType<typeof usePortfolioAssetSharesLazyQuery>;
+export type PortfolioAssetSharesQueryResult = ApolloReactCommon.QueryResult<PortfolioAssetSharesQuery, PortfolioAssetSharesQueryVariables>;
 export const PortfolioTypesDocument = gql`
     query portfolioTypes {
   portfolioTypes {
@@ -1812,6 +1933,44 @@ export function useAggregatePortfoliosLazyQuery(baseOptions?: ApolloReactHooks.L
 export type AggregatePortfoliosQueryHookResult = ReturnType<typeof useAggregatePortfoliosQuery>;
 export type AggregatePortfoliosLazyQueryHookResult = ReturnType<typeof useAggregatePortfoliosLazyQuery>;
 export type AggregatePortfoliosQueryResult = ApolloReactCommon.QueryResult<AggregatePortfoliosQuery, AggregatePortfoliosQueryVariables>;
+export const HerfindahlHirschmanIndexDocument = gql`
+    query herfindahlHirschmanIndex($portfolioIds: [UUID!]) {
+  herfindahlHirschmanIndex(portfolioIds: $portfolioIds) {
+    isSuccess
+    message
+    result {
+      value
+      interpretation
+    }
+  }
+}
+    `;
+
+/**
+ * __useHerfindahlHirschmanIndexQuery__
+ *
+ * To run a query within a React component, call `useHerfindahlHirschmanIndexQuery` and pass it any options that fit your needs.
+ * When your component renders, `useHerfindahlHirschmanIndexQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useHerfindahlHirschmanIndexQuery({
+ *   variables: {
+ *      portfolioIds: // value for 'portfolioIds'
+ *   },
+ * });
+ */
+export function useHerfindahlHirschmanIndexQuery(baseOptions?: ApolloReactHooks.QueryHookOptions<HerfindahlHirschmanIndexQuery, HerfindahlHirschmanIndexQueryVariables>) {
+        return ApolloReactHooks.useQuery<HerfindahlHirschmanIndexQuery, HerfindahlHirschmanIndexQueryVariables>(HerfindahlHirschmanIndexDocument, baseOptions);
+      }
+export function useHerfindahlHirschmanIndexLazyQuery(baseOptions?: ApolloReactHooks.LazyQueryHookOptions<HerfindahlHirschmanIndexQuery, HerfindahlHirschmanIndexQueryVariables>) {
+          return ApolloReactHooks.useLazyQuery<HerfindahlHirschmanIndexQuery, HerfindahlHirschmanIndexQueryVariables>(HerfindahlHirschmanIndexDocument, baseOptions);
+        }
+export type HerfindahlHirschmanIndexQueryHookResult = ReturnType<typeof useHerfindahlHirschmanIndexQuery>;
+export type HerfindahlHirschmanIndexLazyQueryHookResult = ReturnType<typeof useHerfindahlHirschmanIndexLazyQuery>;
+export type HerfindahlHirschmanIndexQueryResult = ApolloReactCommon.QueryResult<HerfindahlHirschmanIndexQuery, HerfindahlHirschmanIndexQueryVariables>;
 export const SecretDocument = gql`
     query Secret {
   secretData

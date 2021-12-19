@@ -1,26 +1,17 @@
 import React from "react"
-import { useParams } from "react-router-dom"
 //import { useAssetQuery } from "finance-types"
-import message from "antd/lib/message"
-import { Col, Empty, Row } from "antd"
-import Loading from "components/loading/Loading"
-import AssetHeader from "components/cards/AssetHeader"
 import FadePage from "components/fade/FadePage"
-import Card from "components/cards/Card"
-import { Text } from "GeneralStyles"
-import styled from "styled-components"
-import StockChart from "components/charts/StockChart"
 
-type paramsTypes = {
-    ticket: string
-}
+// type paramsTypes = {
+//     ticket: string
+// }
 
-const ContentWrapper = styled.div`
-    margin-top: 10px;
-`
+// const ContentWrapper = styled.div`
+//     margin-top: 10px;
+// `
 
 const Asset: React.FC = () => {
-    const { ticket } = useParams<paramsTypes>()
+    //const { ticket } = useParams<paramsTypes>()
     // const { data, loading, error } = useAssetQuery({
     //     variables: {
     //         ticket,
