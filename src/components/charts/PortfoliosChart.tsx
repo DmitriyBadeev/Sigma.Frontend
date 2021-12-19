@@ -3,12 +3,12 @@ import { Col, message } from "antd"
 import Card from "components/cards/Card"
 import Highcharts from "highcharts/highstock"
 import HighchartsReact from "highcharts-react-official"
-import { useAggregatePortfolioCostGraphLazyQuery } from "finance-types"
+import { usePortfoliosCostGraphQuery } from "finance-types"
 import Loading from "components/loading/Loading"
 import { areaOptions } from "./ChartOptions"
 
 type propTypes = {
-    portfolios: number[]
+    portfolioIds: number[]
 }
 
 Highcharts.setOptions({
@@ -56,17 +56,8 @@ Highcharts.setOptions({
     },
 })
 
-const PortfoliosChart: React.FC<propTypes> = (props) => {
-    const [
-        query,
-        { data, loading, error },
-    ] = useAggregatePortfolioCostGraphLazyQuery()
-
-    useEffect(() => {
-        query({
-            variables: { portfolioIds: props.portfolios },
-        })
-    }, [query, props.portfolios])
+const PortfoliosChart: React.FC<propTypes> = ({ portfolioIds }) => {
+    const { data, loading, error } = usePortfoliosCostGraphQuery({ variables: { portfolioIds } })
 
     if (loading) {
         return (
@@ -81,11 +72,11 @@ const PortfoliosChart: React.FC<propTypes> = (props) => {
     if (error) message.error(error.message)
 
     const preparedData =
-        data?.aggregatePortfolioCostGraph?.map((portfolioDatas) => {
+        data?.portfoliosCostGraph?.result?.map((portfolioDatas) => {
             return {
                 name: portfolioDatas?.portfolioName,
                 data: portfolioDatas?.data?.map((d) => {
-                    const value = (d?.value || 0) / 100
+                    const value = d?.value || 0
                     return [d?.date || 0, value] || []
                 }),
             }

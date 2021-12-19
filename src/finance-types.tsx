@@ -45,7 +45,7 @@ export type Query = {
   currencyOperationTypes?: Maybe<Array<Maybe<Scalars['String']>>>;
   aggregatePortfolios?: Maybe<DefaultPayloadOfPortfolio>;
   stockCandles?: Maybe<Array<Maybe<StockCandle>>>;
-  aggregatePortfolioCostGraph?: Maybe<Array<Maybe<CostGraphData>>>;
+  portfoliosCostGraph?: Maybe<DefaultPayloadOfListOfCostGraphData>;
   secretData?: Maybe<Scalars['String']>;
   parseAssetReport?: Maybe<Array<Maybe<AssetOperation>>>;
   parseCurrencyReport?: Maybe<Array<Maybe<CurrencyOperation>>>;
@@ -75,7 +75,7 @@ export type QueryStockCandlesArgs = {
 };
 
 
-export type QueryAggregatePortfolioCostGraphArgs = {
+export type QueryPortfoliosCostGraphArgs = {
   portfolioIds?: Maybe<Array<Scalars['UUID']>>;
 };
 
@@ -294,11 +294,11 @@ export enum CandleInterval {
   Hour = 'HOUR'
 }
 
-export type CostGraphData = {
-  __typename?: 'CostGraphData';
-  portfolioId: Scalars['Int'];
-  portfolioName?: Maybe<Scalars['String']>;
-  data?: Maybe<Array<Maybe<TimeValue>>>;
+export type DefaultPayloadOfListOfCostGraphData = {
+  __typename?: 'DefaultPayloadOfListOfCostGraphData';
+  isSuccess: Scalars['Boolean'];
+  message?: Maybe<Scalars['String']>;
+  result?: Maybe<Array<Maybe<CostGraphData>>>;
 };
 
 export type AssetOperation = {
@@ -411,10 +411,11 @@ export type PaymentData = {
   currency?: Maybe<Currency>;
 };
 
-export type TimeValue = {
-  __typename?: 'TimeValue';
-  date: Scalars['Long'];
-  value: Scalars['Int'];
+export type CostGraphData = {
+  __typename?: 'CostGraphData';
+  portfolioId: Scalars['UUID'];
+  portfolioName?: Maybe<Scalars['String']>;
+  data?: Maybe<Array<Maybe<TimeValue>>>;
 };
 
 export type Coupon = {
@@ -487,29 +488,44 @@ export type DailyPortfolioReport = {
   __typename?: 'DailyPortfolioReport';
   id: Scalars['UUID'];
   cost: Scalars['Decimal'];
+  investedSum: Scalars['Decimal'];
   paperProfit: Scalars['Decimal'];
-  paymentProfit: Scalars['Decimal'];
-  balance: Scalars['Decimal'];
+  paperProfitPercent: Scalars['Decimal'];
+  dividendProfit: Scalars['Decimal'];
+  dividendProfitPercent: Scalars['Decimal'];
+  rubBalance: Scalars['Decimal'];
+  dollarBalance: Scalars['Decimal'];
+  euroBalance: Scalars['Decimal'];
   date: Scalars['DateTime'];
   portfolioId: Scalars['UUID'];
   portfolio?: Maybe<Portfolio>;
 };
 
-export type AggregatePortfolioCostGraphQueryVariables = Exact<{
+export type TimeValue = {
+  __typename?: 'TimeValue';
+  date: Scalars['Long'];
+  value: Scalars['Decimal'];
+};
+
+export type PortfoliosCostGraphQueryVariables = Exact<{
   portfolioIds?: Maybe<Array<Scalars['UUID']> | Scalars['UUID']>;
 }>;
 
 
-export type AggregatePortfolioCostGraphQuery = (
+export type PortfoliosCostGraphQuery = (
   { __typename?: 'Query' }
-  & { aggregatePortfolioCostGraph?: Maybe<Array<Maybe<(
-    { __typename?: 'CostGraphData' }
-    & Pick<CostGraphData, 'portfolioId' | 'portfolioName'>
-    & { data?: Maybe<Array<Maybe<(
-      { __typename?: 'TimeValue' }
-      & Pick<TimeValue, 'date' | 'value'>
+  & { portfoliosCostGraph?: Maybe<(
+    { __typename?: 'DefaultPayloadOfListOfCostGraphData' }
+    & Pick<DefaultPayloadOfListOfCostGraphData, 'isSuccess' | 'message'>
+    & { result?: Maybe<Array<Maybe<(
+      { __typename?: 'CostGraphData' }
+      & Pick<CostGraphData, 'portfolioId' | 'portfolioName'>
+      & { data?: Maybe<Array<Maybe<(
+        { __typename?: 'TimeValue' }
+        & Pick<TimeValue, 'date' | 'value'>
+      )>>> }
     )>>> }
-  )>>> }
+  )> }
 );
 
 export type SparklineQueryVariables = Exact<{
@@ -876,44 +892,48 @@ export type SecretQuery = (
 );
 
 
-export const AggregatePortfolioCostGraphDocument = gql`
-    query aggregatePortfolioCostGraph($portfolioIds: [UUID!]) {
-  aggregatePortfolioCostGraph(portfolioIds: $portfolioIds) {
-    portfolioId
-    portfolioName
-    data {
-      date
-      value
+export const PortfoliosCostGraphDocument = gql`
+    query portfoliosCostGraph($portfolioIds: [UUID!]) {
+  portfoliosCostGraph(portfolioIds: $portfolioIds) {
+    isSuccess
+    message
+    result {
+      portfolioId
+      portfolioName
+      data {
+        date
+        value
+      }
     }
   }
 }
     `;
 
 /**
- * __useAggregatePortfolioCostGraphQuery__
+ * __usePortfoliosCostGraphQuery__
  *
- * To run a query within a React component, call `useAggregatePortfolioCostGraphQuery` and pass it any options that fit your needs.
- * When your component renders, `useAggregatePortfolioCostGraphQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * To run a query within a React component, call `usePortfoliosCostGraphQuery` and pass it any options that fit your needs.
+ * When your component renders, `usePortfoliosCostGraphQuery` returns an object from Apollo Client that contains loading, error, and data properties
  * you can use to render your UI.
  *
  * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
  *
  * @example
- * const { data, loading, error } = useAggregatePortfolioCostGraphQuery({
+ * const { data, loading, error } = usePortfoliosCostGraphQuery({
  *   variables: {
  *      portfolioIds: // value for 'portfolioIds'
  *   },
  * });
  */
-export function useAggregatePortfolioCostGraphQuery(baseOptions?: ApolloReactHooks.QueryHookOptions<AggregatePortfolioCostGraphQuery, AggregatePortfolioCostGraphQueryVariables>) {
-        return ApolloReactHooks.useQuery<AggregatePortfolioCostGraphQuery, AggregatePortfolioCostGraphQueryVariables>(AggregatePortfolioCostGraphDocument, baseOptions);
+export function usePortfoliosCostGraphQuery(baseOptions?: ApolloReactHooks.QueryHookOptions<PortfoliosCostGraphQuery, PortfoliosCostGraphQueryVariables>) {
+        return ApolloReactHooks.useQuery<PortfoliosCostGraphQuery, PortfoliosCostGraphQueryVariables>(PortfoliosCostGraphDocument, baseOptions);
       }
-export function useAggregatePortfolioCostGraphLazyQuery(baseOptions?: ApolloReactHooks.LazyQueryHookOptions<AggregatePortfolioCostGraphQuery, AggregatePortfolioCostGraphQueryVariables>) {
-          return ApolloReactHooks.useLazyQuery<AggregatePortfolioCostGraphQuery, AggregatePortfolioCostGraphQueryVariables>(AggregatePortfolioCostGraphDocument, baseOptions);
+export function usePortfoliosCostGraphLazyQuery(baseOptions?: ApolloReactHooks.LazyQueryHookOptions<PortfoliosCostGraphQuery, PortfoliosCostGraphQueryVariables>) {
+          return ApolloReactHooks.useLazyQuery<PortfoliosCostGraphQuery, PortfoliosCostGraphQueryVariables>(PortfoliosCostGraphDocument, baseOptions);
         }
-export type AggregatePortfolioCostGraphQueryHookResult = ReturnType<typeof useAggregatePortfolioCostGraphQuery>;
-export type AggregatePortfolioCostGraphLazyQueryHookResult = ReturnType<typeof useAggregatePortfolioCostGraphLazyQuery>;
-export type AggregatePortfolioCostGraphQueryResult = ApolloReactCommon.QueryResult<AggregatePortfolioCostGraphQuery, AggregatePortfolioCostGraphQueryVariables>;
+export type PortfoliosCostGraphQueryHookResult = ReturnType<typeof usePortfoliosCostGraphQuery>;
+export type PortfoliosCostGraphLazyQueryHookResult = ReturnType<typeof usePortfoliosCostGraphLazyQuery>;
+export type PortfoliosCostGraphQueryResult = ApolloReactCommon.QueryResult<PortfoliosCostGraphQuery, PortfoliosCostGraphQueryVariables>;
 export const SparklineDocument = gql`
     query Sparkline($ticket: String!, $from: DateTime!, $interval: CandleInterval!) {
   stockCandles(ticket: $ticket, from: $from, interval: $interval) {

@@ -1,12 +1,16 @@
-query aggregatePortfolioCostGraph($portfolioIds: [UUID!]) {
-    aggregatePortfolioCostGraph(portfolioIds: $portfolioIds) {
-        portfolioId
-        portfolioName
-        data {
-            date
-            value
-        }
+query portfoliosCostGraph($portfolioIds: [UUID!]) {
+  portfoliosCostGraph(portfolioIds: $portfolioIds) {
+    isSuccess
+    message
+    result {
+      portfolioId
+      portfolioName
+      data {
+        date
+        value
+      }
     }
+  }
 }
 
 query Sparkline(

@@ -53,7 +53,7 @@ const Portfolios: React.FC = observer(() => {
                     <PaperProfitCard profit={portfolio?.paperProfit} percent={portfolio?.paperProfitPercent} />
                     <DividendProfitCard dividendProfit={portfolio?.dividendProfit} percent={portfolio?.dividendProfitPercent} />
                     <BalanceCard rubBalance={portfolio?.rubBalance} dollarBalance={portfolio?.dollarBalance} euroBalance={portfolio?.euroBalance}/>
-                    <PortfoliosChart portfolios={selectedPortfolioIds} />
+                    <PortfoliosChart portfolioIds={selectedPortfolioIds} />
                     <FuturePaymentsTable portfolioIds={selectedPortfolioIds} />
                     <StockTable stocks={portfolio?.portfolioStocks || []} />
                     <FondTable fonds={portfolio?.portfolioFonds || []} />
