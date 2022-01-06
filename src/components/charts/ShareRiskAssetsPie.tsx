@@ -1,11 +1,11 @@
 import React from "react"
 import { Col, message } from "antd"
 import Card from "components/cards/Card"
-import Highcharts from "highcharts/highstock"
+import Highcharts, { SeriesOptionsType } from "highcharts/highstock"
 import HighchartsReact from "highcharts-react-official"
-import { usePortfoliosCostGraphQuery } from "finance-types"
+import { usePortfolioAssetSharesQuery } from "finance-types"
 import Loading from "components/loading/Loading"
-import { areaOptions } from "./ChartOptions"
+import { pieOptions } from "./ChartOptions"
 
 type propTypes = {
     portfolioIds: number[]
@@ -56,13 +56,13 @@ Highcharts.setOptions({
     },
 })
 
-const PortfoliosChart: React.FC<propTypes> = ({ portfolioIds }) => {
-    const { data, loading, error } = usePortfoliosCostGraphQuery({ variables: { portfolioIds } })
+const ShareRiskAssetsPie: React.FC<propTypes> = ({ portfolioIds }) => {
+    const { data, loading, error } = usePortfolioAssetSharesQuery({ variables: { portfolioIds } })
 
     if (loading) {
         return (
-            <Col span={15}>
-                <Card title="Изменение стоимости портфеля">
+            <Col span={12}>
+                <Card title="Распределение риска в портфеле">
                     <Loading height="430px" />
                 </Card>
             </Col>
@@ -72,29 +72,25 @@ const PortfoliosChart: React.FC<propTypes> = ({ portfolioIds }) => {
     if (error) message.error(error.message)
 
     const preparedData =
-        (data?.portfoliosCostGraph?.result?.map((portfolioDatas) => {
-            return {
-                name: portfolioDatas?.portfolioName,
-                data: portfolioDatas?.data
-                    ?.map((d) => {
-                        const value = d?.value || 0
-                        return [d?.date || 0, value] || []
-                    })
-                    .sort(),
-            }
-        }) || [])
+        (data?.portfolioAssetShares?.result?.map((portfolioDatas) => ({
+            name: portfolioDatas?.name as string,
+            ticket: portfolioDatas?.ticket as string,
+            y: portfolioDatas?.riskPercent as number
+        })) || []).filter(d => d.y > 0)
+
+    const seria: SeriesOptionsType = { name: "Распределение риска в портфеле", colorByPoint: true, type: 'pie', data: preparedData }
     
     return (
-        <Col span={15}>
-            <Card title="Изменение стоимости портфеля">
+        <Col span={12}>
+            <Card title="Распределение риска в портфеле">
                 <HighchartsReact
                     highcharts={Highcharts}
-                    options={areaOptions(preparedData)}
-                    constructorType="stockChart"
+                    options={pieOptions(seria)}
+                    constructorType="chart"
                 />
             </Card>
         </Col>
     )
 }
 
-export default PortfoliosChart
+export default ShareRiskAssetsPie

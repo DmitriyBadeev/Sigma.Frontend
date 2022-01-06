@@ -98,3 +98,17 @@ query herfindahlHirschmanIndex($portfolioIds: [UUID!]) {
     }
   }
 }
+
+query sharpeRatio($portfolioIds: [UUID!]) {  
+  sharpeRatio(portfolioIds: $portfolioIds) {
+    isSuccess
+    message
+    result {
+      value
+      risk
+      profit
+      safeRate
+      interpretation
+    }
+  }
+}

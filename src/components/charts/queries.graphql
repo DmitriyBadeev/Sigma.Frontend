@@ -44,6 +44,7 @@ query portfolioAssetShares($portfolioIds: [UUID!]) {
       ticket
       name
       percent
+      riskPercent
     }
   }
 }

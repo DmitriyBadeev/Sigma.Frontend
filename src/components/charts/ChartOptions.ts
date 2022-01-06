@@ -1,3 +1,5 @@
+import { SeriesOptionsType } from "highcharts"
+
 type TAreaData = {
     name: string | null | undefined
     data: any[][] | undefined
@@ -310,4 +312,42 @@ export const sparklineOptions = (data: any[][]) => {
             },
         ],
     }
+}
+
+export const pieOptions = (seria: SeriesOptionsType) => {
+
+    const options: Highcharts.Options = {
+        ...generalOptions,
+        chart: {
+            plotShadow: false,
+            type: 'pie',
+            ...generalOptions.chart
+        },
+        title: undefined,
+        accessibility: {
+            point: {
+                valueSuffix: '%'
+            }
+        },
+        plotOptions: {
+            pie: {
+                allowPointSelect: true,
+                cursor: 'pointer',
+                dataLabels: {
+                    enabled: true,
+                    style: { fontWeight: '400', color: 'grey' },
+                    format: '{point.name}: {point.y:.1f}%'
+                },
+                showInLegend: false
+            }
+        },
+        tooltip: {
+            xDateFormat: "%d.%m.%Y",
+            pointFormat: "<b>{point.y:.2f} %</b>",
+        },
+        colors: ['#A176ED', '#6CC2F2', '#E86CF2', '#F6E862', '#B596ED', '#8CEBCE', '#FFBC97', '#FFF397', '#A176ED'],
+        series: [seria]
+    }
+
+    return options;
 }

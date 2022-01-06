@@ -1,16 +1,15 @@
 import React from "react"
 import styled from "styled-components"
-import { getFractionalPart, getIntegerPart } from "helpers/financeHelpers"
 
 type propTypes = {
-    color?: "primary" | "green" | "red" | "black" | "dependingOnSign"
+    color?: "primary" | "green" | "red" | "black" | "dependingOnSign" | string
     number: number
     withSign?: boolean
     withCurrency?: boolean
 }
 
 type styleProps = {
-    $color: "primary" | "green" | "red" | "black"
+    $color: "primary" | "green" | "red" | "black" | string
 }
 
 const Wrapper = styled.div<styleProps>`
@@ -24,6 +23,8 @@ const Wrapper = styled.div<styleProps>`
                 return props.theme.red
             case "black":
                 return props.theme.black
+            default:
+                return props.$color
         }
     }};
     font-weight: 500;
@@ -35,15 +36,9 @@ const IntegerPart = styled.div`
     font-size: 30px;
 `
 
-const FractionalPart = styled.div`
-    font-size: 15px;
-`
-
-const BigFractionalNumber: React.FC<propTypes> = ({
+const BigNumber: React.FC<propTypes> = ({
     number,
     color = "primary",
-    withSign = false,
-    withCurrency = true
 }) => {
     const isAboveZero = number >= 0
     const isEqualZero = number === 0
@@ -52,21 +47,15 @@ const BigFractionalNumber: React.FC<propTypes> = ({
         color = isEqualZero ? "black" : isAboveZero ? "green" : "red"
     }
 
-    let sign = isEqualZero ? "" : isAboveZero ? "+" : "−"
-    number = Math.abs(number)
+    number = Math.abs(Number(number))
 
     return (
         <Wrapper $color={color}>
             <IntegerPart>
-                {withSign ? sign + "\u202F" : ""}
-                {getIntegerPart(number)}
-            </IntegerPart>
-            <FractionalPart>
-                ,{getFractionalPart(number)}
-                {withCurrency && "\u00A0₽"}
-            </FractionalPart>
+                {number.toLocaleString('ru')}
+            </IntegerPart>        
         </Wrapper>
     )
 }
 
-export default BigFractionalNumber
+export default BigNumber

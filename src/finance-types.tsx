@@ -52,6 +52,7 @@ export type Query = {
   futurePayments?: Maybe<DefaultPayloadOfListOfPaymentData>;
   portfolioAssetShares?: Maybe<DefaultPayloadOfListOfAssetShare>;
   herfindahlHirschmanIndex?: Maybe<DefaultPayloadOfHerfindahlHirschmanIndex>;
+  sharpeRatio?: Maybe<DefaultPayloadOfSharpeRatio>;
 };
 
 
@@ -103,6 +104,11 @@ export type QueryPortfolioAssetSharesArgs = {
 
 
 export type QueryHerfindahlHirschmanIndexArgs = {
+  portfolioIds?: Maybe<Array<Scalars['UUID']>>;
+};
+
+
+export type QuerySharpeRatioArgs = {
   portfolioIds?: Maybe<Array<Scalars['UUID']>>;
 };
 
@@ -226,6 +232,9 @@ export type Stock = {
   price: Scalars['Decimal'];
   priceChange: Scalars['Decimal'];
   updateTime: Scalars['DateTime'];
+  averageProfit: Scalars['Decimal'];
+  risk: Scalars['Decimal'];
+  sharpeRatio: Scalars['Decimal'];
   portfolioStocks?: Maybe<Array<Maybe<PortfolioStock>>>;
   dividends?: Maybe<Array<Maybe<Dividend>>>;
 };
@@ -242,6 +251,9 @@ export type Fond = {
   price: Scalars['Decimal'];
   priceChange: Scalars['Decimal'];
   updateTime: Scalars['DateTime'];
+  averageProfit: Scalars['Decimal'];
+  risk: Scalars['Decimal'];
+  sharpeRatio: Scalars['Decimal'];
   portfolioFonds?: Maybe<Array<Maybe<PortfolioFond>>>;
 };
 
@@ -261,6 +273,10 @@ export type Bond = {
   amortizationDate: Scalars['DateTime'];
   nominal: Scalars['Decimal'];
   coupon: Scalars['Decimal'];
+  couponPercent: Scalars['Decimal'];
+  averageProfit: Scalars['Decimal'];
+  risk: Scalars['Decimal'];
+  sharpeRatio: Scalars['Decimal'];
   portfolioBonds?: Maybe<Array<Maybe<PortfolioBond>>>;
   coupons?: Maybe<Array<Maybe<Coupon>>>;
 };
@@ -365,6 +381,13 @@ export type DefaultPayloadOfHerfindahlHirschmanIndex = {
   result?: Maybe<HerfindahlHirschmanIndex>;
 };
 
+export type DefaultPayloadOfSharpeRatio = {
+  __typename?: 'DefaultPayloadOfSharpeRatio';
+  isSuccess: Scalars['Boolean'];
+  message?: Maybe<Scalars['String']>;
+  result?: Maybe<SharpeRatio>;
+};
+
 export type DefaultPayload = {
   __typename?: 'DefaultPayload';
   isSuccess: Scalars['Boolean'];
@@ -427,6 +450,15 @@ export enum AssetType {
 }
 
 
+export type SharpeRatio = {
+  __typename?: 'SharpeRatio';
+  value: Scalars['Decimal'];
+  risk: Scalars['Decimal'];
+  profit: Scalars['Decimal'];
+  safeRate: Scalars['Decimal'];
+  interpretation: SharpRatioInterpretation;
+};
+
 export type HerfindahlHirschmanIndex = {
   __typename?: 'HerfindahlHirschmanIndex';
   value: Scalars['Decimal'];
@@ -438,6 +470,7 @@ export type AssetShare = {
   ticket?: Maybe<Scalars['String']>;
   name?: Maybe<Scalars['String']>;
   percent: Scalars['Decimal'];
+  riskPercent: Scalars['Decimal'];
 };
 
 export type PaymentData = {
@@ -555,6 +588,14 @@ export enum HerfindahlHirschmanIndexInterpretation {
   Terrible = 'TERRIBLE'
 }
 
+export enum SharpRatioInterpretation {
+  Excellent = 'EXCELLENT',
+  Good = 'GOOD',
+  Normal = 'NORMAL',
+  Bad = 'BAD',
+  Terrible = 'TERRIBLE'
+}
+
 export type PortfoliosCostGraphQueryVariables = Exact<{
   portfolioIds?: Maybe<Array<Scalars['UUID']> | Scalars['UUID']>;
 }>;
@@ -618,7 +659,7 @@ export type PortfolioAssetSharesQuery = (
     & Pick<DefaultPayloadOfListOfAssetShare, 'isSuccess' | 'message'>
     & { result?: Maybe<Array<Maybe<(
       { __typename?: 'AssetShare' }
-      & Pick<AssetShare, 'ticket' | 'name' | 'percent'>
+      & Pick<AssetShare, 'ticket' | 'name' | 'percent' | 'riskPercent'>
     )>>> }
   )> }
 );
@@ -965,6 +1006,23 @@ export type HerfindahlHirschmanIndexQuery = (
   )> }
 );
 
+export type SharpeRatioQueryVariables = Exact<{
+  portfolioIds?: Maybe<Array<Scalars['UUID']> | Scalars['UUID']>;
+}>;
+
+
+export type SharpeRatioQuery = (
+  { __typename?: 'Query' }
+  & { sharpeRatio?: Maybe<(
+    { __typename?: 'DefaultPayloadOfSharpeRatio' }
+    & Pick<DefaultPayloadOfSharpeRatio, 'isSuccess' | 'message'>
+    & { result?: Maybe<(
+      { __typename?: 'SharpeRatio' }
+      & Pick<SharpeRatio, 'value' | 'risk' | 'profit' | 'safeRate' | 'interpretation'>
+    )> }
+  )> }
+);
+
 export type SecretQueryVariables = Exact<{ [key: string]: never; }>;
 
 
@@ -1098,6 +1156,7 @@ export const PortfolioAssetSharesDocument = gql`
       ticket
       name
       percent
+      riskPercent
     }
   }
 }
@@ -1971,6 +2030,47 @@ export function useHerfindahlHirschmanIndexLazyQuery(baseOptions?: ApolloReactHo
 export type HerfindahlHirschmanIndexQueryHookResult = ReturnType<typeof useHerfindahlHirschmanIndexQuery>;
 export type HerfindahlHirschmanIndexLazyQueryHookResult = ReturnType<typeof useHerfindahlHirschmanIndexLazyQuery>;
 export type HerfindahlHirschmanIndexQueryResult = ApolloReactCommon.QueryResult<HerfindahlHirschmanIndexQuery, HerfindahlHirschmanIndexQueryVariables>;
+export const SharpeRatioDocument = gql`
+    query sharpeRatio($portfolioIds: [UUID!]) {
+  sharpeRatio(portfolioIds: $portfolioIds) {
+    isSuccess
+    message
+    result {
+      value
+      risk
+      profit
+      safeRate
+      interpretation
+    }
+  }
+}
+    `;
+
+/**
+ * __useSharpeRatioQuery__
+ *
+ * To run a query within a React component, call `useSharpeRatioQuery` and pass it any options that fit your needs.
+ * When your component renders, `useSharpeRatioQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useSharpeRatioQuery({
+ *   variables: {
+ *      portfolioIds: // value for 'portfolioIds'
+ *   },
+ * });
+ */
+export function useSharpeRatioQuery(baseOptions?: ApolloReactHooks.QueryHookOptions<SharpeRatioQuery, SharpeRatioQueryVariables>) {
+        return ApolloReactHooks.useQuery<SharpeRatioQuery, SharpeRatioQueryVariables>(SharpeRatioDocument, baseOptions);
+      }
+export function useSharpeRatioLazyQuery(baseOptions?: ApolloReactHooks.LazyQueryHookOptions<SharpeRatioQuery, SharpeRatioQueryVariables>) {
+          return ApolloReactHooks.useLazyQuery<SharpeRatioQuery, SharpeRatioQueryVariables>(SharpeRatioDocument, baseOptions);
+        }
+export type SharpeRatioQueryHookResult = ReturnType<typeof useSharpeRatioQuery>;
+export type SharpeRatioLazyQueryHookResult = ReturnType<typeof useSharpeRatioLazyQuery>;
+export type SharpeRatioQueryResult = ApolloReactCommon.QueryResult<SharpeRatioQuery, SharpeRatioQueryVariables>;
 export const SecretDocument = gql`
     query Secret {
   secretData

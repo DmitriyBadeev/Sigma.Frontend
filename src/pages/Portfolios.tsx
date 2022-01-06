@@ -5,6 +5,7 @@ import { Col, message, Row } from "antd"
 import PortfolioSelector from "components/portfolios/PortfolioSelector"
 import styled from "styled-components"
 import DividendProfitCard from "components/cards/DividendProfitCard"
+import IndexCards from "components/cards/IndexCards"
 import BalanceCard from "components/cards/BalanceCard"
 import PaperProfitCard from "components/cards/PaperProfitCard"
 import CostWithInvestSumCard from "components/cards/CostWithInvestSumCard"
@@ -18,6 +19,8 @@ import PortfoliosChart from "components/charts/PortfoliosChart"
 import CreatePortfolioDrawer from "components/drawers/CreatePortfolioDrawer"
 import { useAggregatePortfoliosLazyQuery } from "finance-types"
 import Loading from "components/loading/Loading"
+import ShareAssetsPie from "components/charts/ShareAssetsPie"
+import ShareRiskAssetsPie from "components/charts/ShareRiskAssetsPie"
 
 const Content = styled(Row)`
     padding-top: 30px;
@@ -54,6 +57,9 @@ const Portfolios: React.FC = observer(() => {
                     <BalanceCard rubBalance={portfolio?.rubBalance} dollarBalance={portfolio?.dollarBalance} euroBalance={portfolio?.euroBalance}/>
                     <PortfoliosChart portfolioIds={selectedPortfolioIds} />
                     <FuturePaymentsTable portfolioIds={selectedPortfolioIds} />
+                    <ShareAssetsPie portfolioIds={selectedPortfolioIds}/>
+                    <ShareRiskAssetsPie portfolioIds={selectedPortfolioIds}/>
+                    <IndexCards portfolioIds={selectedPortfolioIds}/>    
                     <StockTable stocks={portfolio?.portfolioStocks || []} />
                     <FondTable fonds={portfolio?.portfolioFonds || []} />
                     <BondTable bonds={portfolio?.portfolioBonds || []} />
